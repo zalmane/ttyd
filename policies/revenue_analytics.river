@@ -1,0 +1,66 @@
+/** Revenue analytics from orders — monthly breakdown and segment analysis */
+model revenue_analytics("Revenue Analytics") {
+
+    /** Transactional orders */
+    source orders("Orders") {
+        table("orders")
+        /** */ property order_id("Order ID") -> string
+        /** */ property customer_id("Customer ID") -> string
+        /** */ property product_id("Product ID") -> string
+        /** */ property amount("Amount") -> float
+        /** */ property order_date("Order Date") -> date
+        /** */ property status("Status") -> string
+
+        /** Customer segment lookup */
+        relation to_customer("To Customer") {
+            related to one revenue_analytics.customers using base.customer_id == target.customer_id
+        }
+    }
+
+    /** Customer master data */
+    source customers("Customers") {
+        table("customers")
+        /** */ property customer_id("Customer ID") -> string
+        /** */ property name("Name") -> string
+        /** */ property segment("Segment") -> string
+        /** */ property region("Region") -> string
+        /** */ property signup_date("Signup Date") -> date
+    }
+
+    /** Completed orders enriched with customer data */
+    entity completed_orders("Completed Orders") {
+        generated from entity revenue_analytics.orders filter (base.status == "completed")
+        /** */ property order_id("Order ID") -> string { base.order_id }
+        /** */ property customer_id("Customer ID") -> string { base.customer_id }
+        /** */ property product_id("Product ID") -> string { base.product_id }
+        /** */ property amount("Amount") -> float { base.amount }
+        /** */ property order_date("Order Date") -> date { base.order_date }
+        /** Denormalized segment for grouping */
+        property segment("Segment") -> string { base.to_customer.segment }
+        /** Denormalized region for grouping */
+        property region("Region") -> string { base.to_customer.region }
+    }
+
+    /** Monthly revenue totals */
+    entity monthly_revenue("Monthly Revenue") {
+        generated from entity revenue_analytics.completed_orders
+            group (year(base.order_date)) as yr, (month(base.order_date)) as mnth as by_month
+        output
+
+        /** */ @dimension property year("Year") -> int { base.yr }
+        /** */ @dimension property month("Month") -> int { base.mnth }
+        /** */ @metric property revenue("Revenue") -> float { sum(base.by_month.amount) }
+        /** */ @metric property order_count("Order Count") -> int { count(base.by_month.order_id) }
+    }
+
+    /** Revenue by customer segment */
+    entity revenue_by_segment("Revenue By Segment") {
+        generated from entity revenue_analytics.completed_orders
+            group base.segment as by_seg
+        output
+
+        /** */ @dimension property segment("Segment") -> string { base.segment }
+        /** */ @metric property revenue("Revenue") -> float { sum(base.by_seg.amount) }
+        /** */ @metric property order_count("Order Count") -> int { count(base.by_seg.order_id) }
+    }
+}

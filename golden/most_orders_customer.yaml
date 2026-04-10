@@ -1,0 +1,10 @@
+id: most_orders_customer
+question: Which customer has the most orders?
+policy: customer_health
+golden_sql: SELECT c.name, COUNT(o.order_id) as order_count FROM orders o JOIN customers
+  c ON o.customer_id=c.customer_id WHERE o.status='completed' GROUP BY c.customer_id,
+  c.name ORDER BY order_count DESC LIMIT 1
+result_type: table
+golden_answer:
+- name: Acme Corp
+  order_count: 5

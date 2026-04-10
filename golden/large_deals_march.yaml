@@ -1,0 +1,17 @@
+id: large_deals_march
+question: Large deals in March 2025
+policy: order_classification
+golden_sql: SELECT o.order_id, c.name as customer, o.amount FROM orders o JOIN customers
+  c ON o.customer_id=c.customer_id WHERE o.status='completed' AND o.amount >= 4000
+  AND MONTH(o.order_date)=3 AND YEAR(o.order_date)=2025 ORDER BY o.amount DESC
+result_type: table
+golden_answer:
+- order_id: ORD-016
+  customer: Acme Corp
+  amount: 4500.0
+- order_id: ORD-019
+  customer: Umbrella Ltd
+  amount: 4500.0
+- order_id: ORD-015
+  customer: Massive Dynamic
+  amount: 4500.0

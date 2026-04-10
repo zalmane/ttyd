@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+*.pyc
+demo.db
+.ask_history
+uv.lock

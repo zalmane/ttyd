@@ -1,0 +1,7 @@
+id: unique_customers_march
+question: How many unique customers placed orders in March?
+policy: revenue_analytics
+golden_sql: SELECT COUNT(DISTINCT o.customer_id) as unique_customers FROM orders o
+  WHERE o.status='completed' AND MONTH(o.order_date)=3 AND YEAR(o.order_date)=2025
+result_type: scalar
+golden_answer: 8

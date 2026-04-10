@@ -1,0 +1,8 @@
+id: rev_march_vs_jan
+question: How much more revenue did we make in March vs January?
+policy: revenue_analytics
+golden_sql: SELECT (SELECT SUM(amount) FROM orders WHERE status='completed' AND MONTH(order_date)=3
+  AND YEAR(order_date)=2025) - (SELECT SUM(amount) FROM orders WHERE status='completed'
+  AND MONTH(order_date)=1 AND YEAR(order_date)=2025) as delta
+result_type: scalar
+golden_answer: 6600.0

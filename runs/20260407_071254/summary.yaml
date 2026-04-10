@@ -1,0 +1,56 @@
+timestamp: '20260407_071254'
+total: 25
+counts:
+  PASS: 24
+  ERROR: 1
+tests:
+- id: arr_total
+  status: PASS
+- id: arr_excl_apac
+  status: PASS
+- id: arr_multi_sub
+  status: PASS
+- id: avg_mrr
+  status: PASS
+- id: arr_excl_pre2025
+  status: ERROR
+- id: arr_expiring_2025
+  status: PASS
+- id: arr_pct_enterprise
+  status: PASS
+- id: arr_midmarket_us
+  status: PASS
+- id: rev_jan_feb
+  status: PASS
+- id: rev_excl_below_500
+  status: PASS
+- id: avg_order_by_segment
+  status: PASS
+- id: rev_repeat_customers
+  status: PASS
+- id: max_order
+  status: PASS
+- id: rev_by_region
+  status: PASS
+- id: rev_march_vs_jan
+  status: PASS
+- id: unique_customers_march
+  status: PASS
+- id: top3_by_spend
+  status: PASS
+- id: customers_above_5k
+  status: PASS
+- id: customers_emea
+  status: PASS
+- id: most_orders_customer
+  status: PASS
+- id: avg_spend_per_customer
+  status: PASS
+- id: transactional_total
+  status: PASS
+- id: count_by_size_tier
+  status: PASS
+- id: avg_enterprise_standard
+  status: PASS
+- id: large_deals_march
+  status: PASS

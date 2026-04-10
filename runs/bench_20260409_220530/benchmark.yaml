@@ -1,0 +1,365 @@
+timestamp: '20260409_220530'
+test_count: 25
+modes:
+- rl
+- crl
+total_rl_s: 272.1
+total_crl_s: 429.7
+tests:
+- id: arr_total
+  rl:
+    elapsed_s: 10.0
+    mode: rl
+    format: rl
+    output_chars: 3495
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1407
+    elapsed_s: 10.4
+    format: crl
+    status: PASS
+- id: arr_excl_apac
+  rl:
+    elapsed_s: 12.4
+    mode: rl
+    format: rl
+    output_chars: 3592
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1487
+    elapsed_s: 21.6
+    format: crl
+    status: PASS
+- id: arr_multi_sub
+  rl:
+    elapsed_s: 8.7
+    mode: rl
+    format: rl
+    output_chars: 3548
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1630
+    elapsed_s: 12.1
+    format: crl
+    status: PASS
+- id: avg_mrr
+  rl:
+    elapsed_s: 8.7
+    mode: rl
+    format: rl
+    output_chars: 3384
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1406
+    elapsed_s: 9.0
+    format: crl
+    status: PASS
+- id: arr_excl_pre2025
+  rl:
+    elapsed_s: 10.1
+    mode: rl
+    format: rl
+    output_chars: 3768
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 3
+    output_chars: 2041
+    elapsed_s: 35.1
+    format: crl
+    status: COMPILE_FAIL
+    error: (UNKNOWN_IDENTIFIER:14) subscription_arr.active_subs_2025 - Identifier
+      in property must start with 'base', 'self', or reference a Constant via its
+      FQN
+- id: arr_expiring_2025
+  rl:
+    elapsed_s: 10.3
+    mode: rl
+    format: rl
+    output_chars: 4173
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 2
+    output_chars: 1834
+    elapsed_s: 22.5
+    format: crl
+    status: PASS
+- id: arr_pct_enterprise
+  rl:
+    elapsed_s: 25.5
+    mode: rl
+    format: rl
+    output_chars: 4172
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 2
+    output_chars: 1687
+    elapsed_s: 20.9
+    format: crl
+    status: FAIL
+- id: arr_midmarket_us
+  rl:
+    elapsed_s: 13.0
+    mode: rl
+    format: rl
+    output_chars: 3607
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1514
+    elapsed_s: 9.9
+    format: crl
+    status: PASS
+- id: rev_jan_feb
+  rl:
+    elapsed_s: 13.1
+    mode: rl
+    format: rl
+    output_chars: 3789
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1479
+    elapsed_s: 10.6
+    format: crl
+    status: PASS
+- id: rev_excl_below_500
+  rl:
+    elapsed_s: 4.9
+    mode: rl
+    format: rl
+    output_chars: 3055
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1816
+    elapsed_s: 12.3
+    format: crl
+    status: PASS
+- id: avg_order_by_segment
+  rl:
+    elapsed_s: 7.9
+    mode: rl
+    format: rl
+    output_chars: 3501
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1472
+    elapsed_s: 8.5
+    format: crl
+    status: PASS
+- id: rev_repeat_customers
+  rl:
+    elapsed_s: 13.9
+    mode: rl
+    format: rl
+    output_chars: 5327
+    status: FAIL
+  crl:
+    mode: crl
+    attempts: 3
+    output_chars: 2215
+    elapsed_s: 53.6
+    format: crl
+    status: FAIL
+- id: max_order
+  rl:
+    elapsed_s: 8.6
+    mode: rl
+    format: rl
+    output_chars: 3393
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1383
+    elapsed_s: 9.6
+    format: crl
+    status: PASS
+- id: rev_by_region
+  rl:
+    elapsed_s: 7.2
+    mode: rl
+    format: rl
+    output_chars: 3510
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1445
+    elapsed_s: 9.0
+    format: crl
+    status: PASS
+- id: rev_march_vs_jan
+  rl:
+    elapsed_s: 13.8
+    mode: rl
+    format: rl
+    output_chars: 5040
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 3
+    output_chars: 1901
+    elapsed_s: 33.0
+    format: crl
+    status: COMPILE_FAIL
+    error: (UNGROUPED_PROPERTY_ACCESS:17) revenue_analytics.jan_march_pivot:jan_revenue
+      - Property `month` is not in the GROUP BY clause and must be accessed via aggregation;
+      (UNGROUPED_PROPERTY_ACCESS:17) revenue_analytics.jan_march_pivot:mar_revenue
+      - Property `month` is not in the GROUP BY clause and must be accessed via aggregation
+- id: unique_customers_march
+  rl:
+    elapsed_s: 9.7
+    mode: rl
+    format: rl
+    output_chars: 3763
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1527
+    elapsed_s: 10.1
+    format: crl
+    status: PASS
+- id: top3_by_spend
+  rl:
+    elapsed_s: 6.2
+    mode: rl
+    format: rl
+    output_chars: 2675
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1063
+    elapsed_s: 17.5
+    format: crl
+    status: PASS
+- id: customers_above_5k
+  rl:
+    elapsed_s: 24.1
+    mode: rl
+    format: rl
+    output_chars: 3662
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1314
+    elapsed_s: 17.9
+    format: crl
+    status: PASS
+- id: customers_emea
+  rl:
+    elapsed_s: 6.4
+    mode: rl
+    format: rl
+    output_chars: 2644
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1282
+    elapsed_s: 18.2
+    format: crl
+    status: PASS
+- id: most_orders_customer
+  rl:
+    elapsed_s: 7.4
+    mode: rl
+    format: rl
+    output_chars: 2671
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1603
+    elapsed_s: 21.6
+    format: crl
+    status: FAIL
+- id: avg_spend_per_customer
+  rl:
+    elapsed_s: 6.6
+    mode: rl
+    format: rl
+    output_chars: 2750
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1355
+    elapsed_s: 18.9
+    format: crl
+    status: PASS
+- id: transactional_total
+  rl:
+    elapsed_s: 11.9
+    mode: rl
+    format: rl
+    output_chars: 2787
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1226
+    elapsed_s: 11.8
+    format: crl
+    status: PASS
+- id: count_by_size_tier
+  rl:
+    elapsed_s: 10.8
+    mode: rl
+    format: rl
+    output_chars: 2865
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1219
+    elapsed_s: 10.7
+    format: crl
+    status: PASS
+- id: avg_enterprise_standard
+  rl:
+    elapsed_s: 13.2
+    mode: rl
+    format: rl
+    output_chars: 2797
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1295
+    elapsed_s: 11.8
+    format: crl
+    status: PASS
+- id: large_deals_march
+  rl:
+    elapsed_s: 7.7
+    mode: rl
+    format: rl
+    output_chars: 2520
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1479
+    elapsed_s: 13.1
+    format: crl
+    status: PASS

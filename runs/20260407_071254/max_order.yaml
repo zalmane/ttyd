@@ -1,0 +1,37 @@
+id: max_order
+question: What is the largest single order amount?
+policy: revenue_analytics
+golden_answer: 4500.0
+elapsed_s: 8.1
+compiled: true
+rl_diff:
+- +
+- +    /** Largest single order amount */
+- +    entity largest_order("Largest Order") {
+- +        generated from entity revenue_analytics.completed_orders
+- +            group (1) as one as all_orders
+- +        output
+- +
+- +        /** Maximum order amount */ @metric property max_amount("Max Amount") -> float { max(base.all_orders.amount) }
+- +    }
+generated_sql:
+  largest_order: "WITH \"completed_orders$intermediate\" AS (\n  SELECT\n    (\n      base.status = 'completed'\n    ) AS\
+    \ \"$filter_cond\",\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n\
+    \    base.amount AS amount,\n    base.order_date AS order_date,\n    base.status AS status\n  FROM orders AS base\n),\
+    \ completed_orders AS (\n  SELECT\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.product_id\
+    \ AS product_id,\n    base.amount AS amount,\n    base.order_date AS order_date,\n    to_customer.segment AS segment,\n\
+    \    to_customer.region AS region\n  FROM \"completed_orders$intermediate\" AS base\n  LEFT JOIN customers AS to_customer\n\
+    \    ON base.customer_id = to_customer.customer_id\n  WHERE\n    base.\"$filter_cond\"\n), \"largest_order$intermediate\"\
+    \ AS (\n  SELECT\n    1 AS one,\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.product_id\
+    \ AS product_id,\n    base.amount AS amount,\n    base.order_date AS order_date,\n    base.segment AS segment,\n    base.region\
+    \ AS region\n  FROM completed_orders AS base\n)\nSELECT\n  MAX(base.amount) AS max_amount\nFROM \"largest_order$intermediate\"\
+    \ AS base\nGROUP BY\n  base.one"
+agent_results:
+- entity_id: largest_order
+  columns:
+  - max_amount
+  row_count: 1
+  rows:
+  - max_amount: 4500.0
+agent_summary: 'largest_order: 4,500.0'
+status: PASS

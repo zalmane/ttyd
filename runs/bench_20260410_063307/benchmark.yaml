@@ -1,0 +1,245 @@
+timestamp: '20260410_063307'
+modes:
+- crl
+tests:
+- id: arr_total
+  crl:
+    mode: crl
+    elapsed_s: 6.8
+    attempts: 1
+    output_tokens: 359
+    input_tokens: 1108
+    output_chars: 950
+    status: PASS
+- id: arr_excl_apac
+  crl:
+    mode: crl
+    elapsed_s: 22.0
+    attempts: 3
+    output_tokens: 1497
+    input_tokens: 7288
+    output_chars: 1341
+    status: PASS
+- id: arr_multi_sub
+  crl:
+    mode: crl
+    elapsed_s: 7.8
+    attempts: 1
+    output_tokens: 428
+    input_tokens: 1111
+    output_chars: 1168
+    status: PASS
+- id: avg_mrr
+  crl:
+    mode: crl
+    elapsed_s: 6.9
+    attempts: 1
+    output_tokens: 381
+    input_tokens: 1112
+    output_chars: 1014
+    status: FAIL
+- id: arr_excl_pre2025
+  crl:
+    mode: crl
+    elapsed_s: 23.4
+    attempts: 3
+    output_tokens: 1534
+    input_tokens: 7348
+    output_chars: 1400
+    status: COMPILE_FAIL
+    error: (TYPE_MISMATCH:4) subscription_arr.recent_subs - date and option[date]
+      are not comparable
+- id: arr_expiring_2025
+  crl:
+    mode: crl
+    elapsed_s: 45.8
+    attempts: 3
+    output_tokens: 1533
+    input_tokens: 7351
+    output_chars: 1339
+    status: COMPILE_FAIL
+    error: (TYPE_MISMATCH:4) subscription_arr.expiring_2025_subs - date and string
+      are not comparable
+- id: arr_pct_enterprise
+  crl:
+    mode: crl
+    elapsed_s: 22.8
+    attempts: 3
+    output_tokens: 1653
+    input_tokens: 7623
+    output_chars: 1539
+    status: COMPILE_FAIL
+    error: (UNKNOWN_IDENTIFIER:14) subscription_arr.enterprise_arr_percentage:percentage
+      - Identifier `segment_arr` could not be found on `subscription_arr.arr_by_segment`;
+      (UNKNOWN_IDENTIFIER:14) subscription_arr.arr_percentage_by_segment:percentage
+      - Identifier `segment_arr` could not be found on `subscription_arr.arr_by_segment`
+- id: arr_midmarket_us
+  crl:
+    mode: crl
+    elapsed_s: 6.3
+    attempts: 1
+    output_tokens: 438
+    input_tokens: 1110
+    output_chars: 1187
+    status: PASS
+- id: rev_jan_feb
+  crl:
+    mode: crl
+    elapsed_s: 6.9
+    attempts: 1
+    output_tokens: 453
+    input_tokens: 1095
+    output_chars: 1229
+    status: PASS
+- id: rev_excl_below_500
+  crl:
+    mode: crl
+    elapsed_s: 5.9
+    attempts: 1
+    output_tokens: 424
+    input_tokens: 1095
+    output_chars: 1165
+    status: PASS
+- id: avg_order_by_segment
+  crl:
+    mode: crl
+    elapsed_s: 7.0
+    attempts: 1
+    output_tokens: 411
+    input_tokens: 1094
+    output_chars: 1184
+    status: PASS
+- id: rev_repeat_customers
+  crl:
+    mode: crl
+    elapsed_s: 21.2
+    attempts: 3
+    output_tokens: 1637
+    input_tokens: 7548
+    output_chars: 1686
+    status: COMPILE_FAIL
+    error: (UNGROUPED_PROPERTY_ACCESS:17) revenue_analytics.monthly_revenue:year -
+      Property `yr` is not in the GROUP BY clause and must be accessed via aggregation;
+      (INVALID_GROUP_ACCESS:18) revenue_analytics.monthly_revenue:month - Expected
+      property or relation after group name
+- id: max_order
+  crl:
+    mode: crl
+    elapsed_s: 5.4
+    attempts: 1
+    output_tokens: 390
+    input_tokens: 1097
+    output_chars: 1138
+    status: PASS
+- id: rev_by_region
+  crl:
+    mode: crl
+    elapsed_s: 5.0
+    attempts: 1
+    output_tokens: 372
+    input_tokens: 1092
+    output_chars: 1087
+    status: PASS
+- id: rev_march_vs_jan
+  crl:
+    mode: crl
+    elapsed_s: 16.9
+    attempts: 3
+    output_tokens: 1292
+    input_tokens: 6543
+    output_chars: 1428
+    status: COMPILE_FAIL
+    error: (GRAMMAR_SYNTAX_ERROR:49)  - No terminal matches 'c' in the current parser
+      context, at line 1 col 5
+- id: unique_customers_march
+  crl:
+    mode: crl
+    elapsed_s: 5.6
+    attempts: 1
+    output_tokens: 424
+    input_tokens: 1098
+    output_chars: 1197
+    status: PASS
+- id: top3_by_spend
+  crl:
+    mode: crl
+    elapsed_s: 4.5
+    attempts: 1
+    output_tokens: 339
+    input_tokens: 1027
+    output_chars: 987
+    status: PASS
+- id: customers_above_5k
+  crl:
+    mode: crl
+    elapsed_s: 4.6
+    attempts: 1
+    output_tokens: 341
+    input_tokens: 1031
+    output_chars: 988
+    status: PASS
+- id: customers_emea
+  crl:
+    mode: crl
+    elapsed_s: 4.7
+    attempts: 1
+    output_tokens: 383
+    input_tokens: 1027
+    output_chars: 1085
+    status: PASS
+- id: most_orders_customer
+  crl:
+    mode: crl
+    elapsed_s: 4.3
+    attempts: 1
+    output_tokens: 309
+    input_tokens: 1026
+    output_chars: 898
+    status: PASS
+- id: avg_spend_per_customer
+  crl:
+    mode: crl
+    elapsed_s: 3.9
+    attempts: 1
+    output_tokens: 291
+    input_tokens: 1023
+    output_chars: 858
+    status: PASS
+- id: transactional_total
+  crl:
+    mode: crl
+    elapsed_s: 4.6
+    attempts: 1
+    output_tokens: 320
+    input_tokens: 1027
+    output_chars: 973
+    status: PASS
+- id: count_by_size_tier
+  crl:
+    mode: crl
+    elapsed_s: 4.4
+    attempts: 1
+    output_tokens: 298
+    input_tokens: 1025
+    output_chars: 855
+    status: PASS
+- id: avg_enterprise_standard
+  crl:
+    mode: crl
+    elapsed_s: 5.0
+    attempts: 1
+    output_tokens: 327
+    input_tokens: 1026
+    output_chars: 997
+    status: FAIL
+- id: large_deals_march
+  crl:
+    mode: crl
+    elapsed_s: 16.1
+    attempts: 3
+    output_tokens: 1155
+    input_tokens: 6197
+    output_chars: 1091
+    status: COMPILE_FAIL
+    error: (GRAMMAR_SYNTAX_ERROR:49)  - No terminal matches 'd' in the current parser
+      context, at line 1 col 65

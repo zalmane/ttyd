@@ -1,0 +1,337 @@
+timestamp: '20260409_213808'
+test_count: 25
+modes:
+- rl
+- crl
+total_rl_s: 282.7
+total_crl_s: 247.8
+tests:
+- id: arr_total
+  rl:
+    elapsed_s: 9.0
+    mode: rl
+    output_chars: 3495
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 5.4
+    mode: crl
+    output_chars: 1205
+    format: crl
+    status: PASS
+- id: arr_excl_apac
+  rl:
+    elapsed_s: 10.1
+    mode: rl
+    output_chars: 3627
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 7.6
+    mode: crl
+    output_chars: 1267
+    format: crl
+    status: PASS
+- id: arr_multi_sub
+  rl:
+    elapsed_s: 8.8
+    mode: rl
+    output_chars: 3548
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 9.3
+    mode: crl
+    output_chars: 1404
+    format: crl
+    status: PASS
+- id: avg_mrr
+  rl:
+    elapsed_s: 8.8
+    mode: rl
+    output_chars: 3350
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 9.5
+    mode: crl
+    output_chars: 1345
+    format: crl
+    status: PASS
+- id: arr_excl_pre2025
+  rl:
+    elapsed_s: 10.2
+    mode: rl
+    output_chars: 3768
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 7.6
+    mode: crl
+    output_chars: 1243
+    format: crl
+    status: COMPILE_FAIL
+- id: arr_expiring_2025
+  rl:
+    elapsed_s: 13.7
+    mode: rl
+    output_chars: 4051
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 11.3
+    mode: crl
+    output_chars: 1510
+    format: crl
+    status: COMPILE_FAIL
+- id: arr_pct_enterprise
+  rl:
+    elapsed_s: 22.3
+    mode: rl
+    output_chars: 4504
+    format: rl
+    status: SQL_ERROR
+    error: 'Catalog Error: Table with name (SELECT SUM(mrr) * 12 as total_arr FROM
+      subscriptions WHERE status = '
+  crl:
+    elapsed_s: 17.3
+    mode: crl
+    output_chars: 1662
+    format: crl
+    status: COMPILE_FAIL
+    error: (GRAMMAR_SYNTAX_ERROR:49)  - No terminal matches 's' in the current parser
+      context, at line 1 col 21
+- id: arr_midmarket_us
+  rl:
+    elapsed_s: 12.5
+    mode: rl
+    output_chars: 3613
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 9.5
+    mode: crl
+    output_chars: 1512
+    format: crl
+    status: PASS
+- id: rev_jan_feb
+  rl:
+    elapsed_s: 13.2
+    mode: rl
+    output_chars: 3848
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 9.7
+    mode: crl
+    output_chars: 1478
+    format: crl
+    status: PASS
+- id: rev_excl_below_500
+  rl:
+    elapsed_s: 5.2
+    mode: rl
+    output_chars: 3055
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 11.4
+    mode: crl
+    output_chars: 1517
+    format: crl
+    status: PASS
+- id: avg_order_by_segment
+  rl:
+    elapsed_s: 8.1
+    mode: rl
+    output_chars: 3611
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 8.2
+    mode: crl
+    output_chars: 1465
+    format: crl
+    status: PASS
+- id: rev_repeat_customers
+  rl:
+    elapsed_s: 14.7
+    mode: rl
+    output_chars: 5327
+    format: rl
+    status: FAIL
+  crl:
+    elapsed_s: 10.3
+    mode: crl
+    output_chars: 1866
+    format: crl
+    status: PASS
+- id: max_order
+  rl:
+    elapsed_s: 8.3
+    mode: rl
+    output_chars: 3405
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 9.1
+    mode: crl
+    output_chars: 1366
+    format: crl
+    status: PASS
+- id: rev_by_region
+  rl:
+    elapsed_s: 7.4
+    mode: rl
+    output_chars: 3510
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 9.1
+    mode: crl
+    output_chars: 1452
+    format: crl
+    status: PASS
+- id: rev_march_vs_jan
+  rl:
+    elapsed_s: 22.9
+    mode: rl
+    output_chars: 4205
+    format: rl
+    status: FAIL
+  crl:
+    elapsed_s: 12.4
+    mode: crl
+    output_chars: 2215
+    format: crl
+    status: COMPILE_FAIL
+- id: unique_customers_march
+  rl:
+    elapsed_s: 9.8
+    mode: rl
+    output_chars: 3763
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 9.7
+    mode: crl
+    output_chars: 1520
+    format: crl
+    status: PASS
+- id: top3_by_spend
+  rl:
+    elapsed_s: 6.1
+    mode: rl
+    output_chars: 2675
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 10.0
+    mode: crl
+    output_chars: 1315
+    format: crl
+    status: PASS
+- id: customers_above_5k
+  rl:
+    elapsed_s: 18.2
+    mode: rl
+    output_chars: 3862
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 9.5
+    mode: crl
+    output_chars: 1314
+    format: crl
+    status: PASS
+- id: customers_emea
+  rl:
+    elapsed_s: 16.0
+    mode: rl
+    output_chars: 3783
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 7.9
+    mode: crl
+    output_chars: 1045
+    format: crl
+    status: PASS
+- id: most_orders_customer
+  rl:
+    elapsed_s: 7.5
+    mode: rl
+    output_chars: 2671
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 6.1
+    mode: crl
+    output_chars: 1016
+    format: crl
+    status: PASS
+- id: avg_spend_per_customer
+  rl:
+    elapsed_s: 6.4
+    mode: rl
+    output_chars: 2788
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 8.9
+    mode: crl
+    output_chars: 1112
+    format: crl
+    status: PASS
+- id: transactional_total
+  rl:
+    elapsed_s: 12.1
+    mode: rl
+    output_chars: 2929
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 12.3
+    mode: crl
+    output_chars: 1216
+    format: crl
+    status: PASS
+- id: count_by_size_tier
+  rl:
+    elapsed_s: 10.9
+    mode: rl
+    output_chars: 2865
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 11.2
+    mode: crl
+    output_chars: 1220
+    format: crl
+    status: PASS
+- id: avg_enterprise_standard
+  rl:
+    elapsed_s: 12.4
+    mode: rl
+    output_chars: 3178
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 12.1
+    mode: crl
+    output_chars: 1238
+    format: crl
+    status: PASS
+- id: large_deals_march
+  rl:
+    elapsed_s: 8.1
+    mode: rl
+    output_chars: 2520
+    format: rl
+    status: PASS
+  crl:
+    elapsed_s: 12.4
+    mode: crl
+    output_chars: 1458
+    format: crl
+    status: COMPILE_FAIL

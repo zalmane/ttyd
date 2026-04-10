@@ -1,0 +1,6 @@
+id: max_order
+question: What is the largest single order amount?
+policy: revenue_analytics
+golden_sql: SELECT MAX(o.amount) as max_amount FROM orders o WHERE o.status='completed'
+result_type: scalar
+golden_answer: 4500.0

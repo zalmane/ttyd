@@ -1,0 +1,241 @@
+timestamp: '20260410_063544'
+modes:
+- crl
+tests:
+- id: arr_total
+  crl:
+    mode: crl
+    elapsed_s: 7.5
+    attempts: 1
+    output_tokens: 421
+    input_tokens: 1203
+    output_chars: 1028
+    status: PASS
+- id: arr_excl_apac
+  crl:
+    mode: crl
+    elapsed_s: 7.0
+    attempts: 1
+    output_tokens: 405
+    input_tokens: 1210
+    output_chars: 1088
+    status: PASS
+- id: arr_multi_sub
+  crl:
+    mode: crl
+    elapsed_s: 7.6
+    attempts: 1
+    output_tokens: 411
+    input_tokens: 1206
+    output_chars: 1056
+    status: PASS
+- id: avg_mrr
+  crl:
+    mode: crl
+    elapsed_s: 8.3
+    attempts: 1
+    output_tokens: 428
+    input_tokens: 1207
+    output_chars: 1064
+    status: PASS
+- id: arr_excl_pre2025
+  crl:
+    mode: crl
+    elapsed_s: 22.5
+    attempts: 3
+    output_tokens: 1560
+    input_tokens: 7699
+    output_chars: 1402
+    status: COMPILE_FAIL
+    error: (GRAMMAR_SYNTAX_ERROR:49)  - No terminal matches ':' in the current parser
+      context, at line 1 col 32
+- id: arr_expiring_2025
+  crl:
+    mode: crl
+    elapsed_s: 21.8
+    attempts: 3
+    output_tokens: 1606
+    input_tokens: 7808
+    output_chars: 1429
+    status: COMPILE_FAIL
+    error: (TYPE_MISMATCH:4) subscription_arr.expiring_2025_subs - date and string
+      are not comparable
+- id: arr_pct_enterprise
+  crl:
+    mode: crl
+    elapsed_s: 18.3
+    attempts: 3
+    output_tokens: 1304
+    input_tokens: 7062
+    output_chars: 1144
+    status: COMPILE_FAIL
+    error: (GRAMMAR_SYNTAX_ERROR:49)  - No terminal matches 't' in the current parser
+      context, at line 1 col 37
+- id: arr_midmarket_us
+  crl:
+    mode: crl
+    elapsed_s: 7.5
+    attempts: 1
+    output_tokens: 454
+    input_tokens: 1205
+    output_chars: 1245
+    status: PASS
+- id: rev_jan_feb
+  crl:
+    mode: crl
+    elapsed_s: 7.5
+    attempts: 1
+    output_tokens: 435
+    input_tokens: 1190
+    output_chars: 1136
+    status: PASS
+- id: rev_excl_below_500
+  crl:
+    mode: crl
+    elapsed_s: 6.2
+    attempts: 1
+    output_tokens: 485
+    input_tokens: 1190
+    output_chars: 1369
+    status: PASS
+- id: avg_order_by_segment
+  crl:
+    mode: crl
+    elapsed_s: 4.6
+    attempts: 1
+    output_tokens: 358
+    input_tokens: 1189
+    output_chars: 1054
+    status: PASS
+- id: rev_repeat_customers
+  crl:
+    mode: crl
+    elapsed_s: 27.1
+    attempts: 3
+    output_tokens: 1941
+    input_tokens: 8262
+    output_chars: 1877
+    status: COMPILE_FAIL
+    error: (UNKNOWN_IDENTIFIER:14) revenue_analytics.revenue_from_repeat_customers
+      - Identifier `to_repeat` could not be found on `revenue_analytics.repeat_customer_orders`
+- id: max_order
+  crl:
+    mode: crl
+    elapsed_s: 11.7
+    attempts: 2
+    output_tokens: 786
+    input_tokens: 3460
+    output_chars: 1063
+    status: PASS
+- id: rev_by_region
+  crl:
+    mode: crl
+    elapsed_s: 5.2
+    attempts: 1
+    output_tokens: 387
+    input_tokens: 1187
+    output_chars: 1087
+    status: PASS
+- id: rev_march_vs_jan
+  crl:
+    mode: crl
+    elapsed_s: 18.8
+    attempts: 3
+    output_tokens: 1338
+    input_tokens: 7050
+    output_chars: 1335
+    status: COMPILE_FAIL
+    error: (GRAMMAR_SYNTAX_ERROR:49)  - No terminal matches 'c' in the current parser
+      context, at line 1 col 5
+- id: unique_customers_march
+  crl:
+    mode: crl
+    elapsed_s: 6.5
+    attempts: 1
+    output_tokens: 386
+    input_tokens: 1193
+    output_chars: 1071
+    status: PASS
+- id: top3_by_spend
+  crl:
+    mode: crl
+    elapsed_s: 4.6
+    attempts: 1
+    output_tokens: 339
+    input_tokens: 1122
+    output_chars: 987
+    status: PASS
+- id: customers_above_5k
+  crl:
+    mode: crl
+    elapsed_s: 4.6
+    attempts: 1
+    output_tokens: 340
+    input_tokens: 1126
+    output_chars: 986
+    status: PASS
+- id: customers_emea
+  crl:
+    mode: crl
+    elapsed_s: 4.2
+    attempts: 1
+    output_tokens: 334
+    input_tokens: 1122
+    output_chars: 957
+    status: PASS
+- id: most_orders_customer
+  crl:
+    mode: crl
+    elapsed_s: 4.4
+    attempts: 1
+    output_tokens: 329
+    input_tokens: 1121
+    output_chars: 958
+    status: PASS
+- id: avg_spend_per_customer
+  crl:
+    mode: crl
+    elapsed_s: 4.6
+    attempts: 1
+    output_tokens: 295
+    input_tokens: 1118
+    output_chars: 860
+    status: PASS
+- id: transactional_total
+  crl:
+    mode: crl
+    elapsed_s: 4.7
+    attempts: 1
+    output_tokens: 295
+    input_tokens: 1122
+    output_chars: 879
+    status: PASS
+- id: count_by_size_tier
+  crl:
+    mode: crl
+    elapsed_s: 4.8
+    attempts: 1
+    output_tokens: 294
+    input_tokens: 1120
+    output_chars: 855
+    status: PASS
+- id: avg_enterprise_standard
+  crl:
+    mode: crl
+    elapsed_s: 4.4
+    attempts: 1
+    output_tokens: 294
+    input_tokens: 1121
+    output_chars: 893
+    status: PASS
+- id: large_deals_march
+  crl:
+    mode: crl
+    elapsed_s: 17.2
+    attempts: 3
+    output_tokens: 1251
+    input_tokens: 6590
+    output_chars: 1117
+    status: COMPILE_FAIL
+    error: (GRAMMAR_SYNTAX_ERROR:49)  - No terminal matches '#' in the current parser
+      context, at line 1 col 53

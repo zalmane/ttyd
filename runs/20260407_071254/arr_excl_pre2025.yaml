@@ -1,0 +1,7 @@
+id: arr_excl_pre2025
+question: ARR excluding subscriptions that started before 2025
+policy: subscription_arr
+golden_answer: 11640.0
+elapsed_s: 180.1
+error: 'Timeout: timed out'
+status: ERROR

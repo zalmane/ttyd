@@ -1,0 +1,52 @@
+id: rev_by_region
+question: Revenue by region
+policy: revenue_analytics
+golden_answer:
+- region: APAC
+  revenue: 5300.0
+- region: EMEA
+  revenue: 21800.0
+- region: US
+  revenue: 34850.0
+elapsed_s: 8.1
+compiled: true
+rl_diff:
+- +
+- +    /** Revenue by customer region */
+- +    entity revenue_by_region("Revenue By Region") {
+- +        generated from entity revenue_analytics.completed_orders
+- +            group base.region as by_reg
+- +        output
+- +
+- +        /** */ @dimension property region("Region") -> string { base.region }
+- +        /** */ @metric property revenue("Revenue") -> float { sum(base.by_reg.amount) }
+- +        /** */ @metric property order_count("Order Count") -> int { count(base.by_reg.order_id) }
+- +    }
+generated_sql:
+  revenue_by_region: "WITH \"completed_orders$intermediate\" AS (\n  SELECT\n    (\n      base.status = 'completed'\n    )\
+    \ AS \"$filter_cond\",\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n\
+    \    base.amount AS amount,\n    base.order_date AS order_date,\n    base.status AS status\n  FROM orders AS base\n),\
+    \ completed_orders AS (\n  SELECT\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.product_id\
+    \ AS product_id,\n    base.amount AS amount,\n    base.order_date AS order_date,\n    to_customer.segment AS segment,\n\
+    \    to_customer.region AS region\n  FROM \"completed_orders$intermediate\" AS base\n  LEFT JOIN customers AS to_customer\n\
+    \    ON base.customer_id = to_customer.customer_id\n  WHERE\n    base.\"$filter_cond\"\n)\nSELECT\n  base.region AS region,\n\
+    \  SUM(base.amount) AS revenue,\n  COUNT(base.order_id) AS order_count\nFROM completed_orders AS base\nGROUP BY\n  base.region"
+agent_results:
+- entity_id: revenue_by_region
+  columns:
+  - region
+  - revenue
+  - order_count
+  row_count: 3
+  rows:
+  - region: APAC
+    revenue: 5300.0
+    order_count: 2
+  - region: US
+    revenue: 34850.0
+    order_count: 16
+  - region: EMEA
+    revenue: 21800.0
+    order_count: 8
+agent_summary: 'revenue_by_region: 3 rows, SUM(revenue)=61,950.0, SUM(order_count)=26.0'
+status: PASS

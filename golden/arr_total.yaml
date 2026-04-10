@@ -1,0 +1,6 @@
+id: arr_total
+question: What is our total ARR?
+policy: subscription_arr
+golden_sql: SELECT SUM(s.mrr)*12 as total_arr FROM subscriptions s WHERE s.status='active'
+result_type: scalar
+golden_answer: 39240.0

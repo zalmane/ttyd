@@ -1,0 +1,229 @@
+timestamp: '20260410_064715'
+modes:
+- crl
+tests:
+- id: arr_total
+  crl:
+    mode: crl
+    elapsed_s: 7.0
+    attempts: 1
+    output_tokens: 376
+    input_tokens: 2142
+    output_chars: 956
+    status: PASS
+- id: arr_excl_apac
+  crl:
+    mode: crl
+    elapsed_s: 7.2
+    attempts: 1
+    output_tokens: 399
+    input_tokens: 2149
+    output_chars: 1093
+    status: PASS
+- id: arr_multi_sub
+  crl:
+    mode: crl
+    elapsed_s: 8.1
+    attempts: 1
+    output_tokens: 449
+    input_tokens: 2145
+    output_chars: 1169
+    status: PASS
+- id: avg_mrr
+  crl:
+    mode: crl
+    elapsed_s: 7.3
+    attempts: 1
+    output_tokens: 382
+    input_tokens: 2146
+    output_chars: 1030
+    status: PASS
+- id: arr_excl_pre2025
+  crl:
+    mode: crl
+    elapsed_s: 9.2
+    attempts: 1
+    output_tokens: 554
+    input_tokens: 2146
+    output_chars: 1365
+    status: PASS
+- id: arr_expiring_2025
+  crl:
+    mode: crl
+    elapsed_s: 6.1
+    attempts: 1
+    output_tokens: 476
+    input_tokens: 2147
+    output_chars: 1203
+    status: PASS
+- id: arr_pct_enterprise
+  crl:
+    mode: crl
+    elapsed_s: 6.8
+    attempts: 1
+    output_tokens: 520
+    input_tokens: 2145
+    output_chars: 1421
+    status: PASS
+- id: arr_midmarket_us
+  crl:
+    mode: crl
+    elapsed_s: 5.5
+    attempts: 1
+    output_tokens: 376
+    input_tokens: 2144
+    output_chars: 1024
+    status: PASS
+- id: rev_jan_feb
+  crl:
+    mode: crl
+    elapsed_s: 6.8
+    attempts: 1
+    output_tokens: 452
+    input_tokens: 2129
+    output_chars: 1253
+    status: PASS
+- id: rev_excl_below_500
+  crl:
+    mode: crl
+    elapsed_s: 6.9
+    attempts: 1
+    output_tokens: 447
+    input_tokens: 2129
+    output_chars: 1213
+    status: PASS
+- id: avg_order_by_segment
+  crl:
+    mode: crl
+    elapsed_s: 5.4
+    attempts: 1
+    output_tokens: 402
+    input_tokens: 2128
+    output_chars: 1105
+    status: PASS
+- id: rev_repeat_customers
+  crl:
+    mode: crl
+    elapsed_s: 7.4
+    attempts: 1
+    output_tokens: 562
+    input_tokens: 2128
+    output_chars: 1656
+    status: FAIL
+- id: max_order
+  crl:
+    mode: crl
+    elapsed_s: 5.3
+    attempts: 1
+    output_tokens: 365
+    input_tokens: 2131
+    output_chars: 1023
+    status: PASS
+- id: rev_by_region
+  crl:
+    mode: crl
+    elapsed_s: 5.1
+    attempts: 1
+    output_tokens: 372
+    input_tokens: 2126
+    output_chars: 1087
+    status: PASS
+- id: rev_march_vs_jan
+  crl:
+    mode: crl
+    elapsed_s: 15.3
+    attempts: 2
+    output_tokens: 1113
+    input_tokens: 5670
+    output_chars: 1631
+    status: PASS
+- id: unique_customers_march
+  crl:
+    mode: crl
+    elapsed_s: 6.4
+    attempts: 1
+    output_tokens: 457
+    input_tokens: 2132
+    output_chars: 1299
+    status: PASS
+- id: top3_by_spend
+  crl:
+    mode: crl
+    elapsed_s: 4.8
+    attempts: 1
+    output_tokens: 325
+    input_tokens: 2061
+    output_chars: 949
+    status: PASS
+- id: customers_above_5k
+  crl:
+    mode: crl
+    elapsed_s: 4.7
+    attempts: 1
+    output_tokens: 340
+    input_tokens: 2065
+    output_chars: 986
+    status: PASS
+- id: customers_emea
+  crl:
+    mode: crl
+    elapsed_s: 5.7
+    attempts: 1
+    output_tokens: 379
+    input_tokens: 2061
+    output_chars: 1085
+    status: PASS
+- id: most_orders_customer
+  crl:
+    mode: crl
+    elapsed_s: 5.5
+    attempts: 1
+    output_tokens: 374
+    input_tokens: 2060
+    output_chars: 986
+    status: PASS
+- id: avg_spend_per_customer
+  crl:
+    mode: crl
+    elapsed_s: 7.0
+    attempts: 2
+    output_tokens: 476
+    input_tokens: 4630
+    output_chars: 1080
+    status: PASS
+- id: transactional_total
+  crl:
+    mode: crl
+    elapsed_s: 7.1
+    attempts: 2
+    output_tokens: 438
+    input_tokens: 4623
+    output_chars: 1025
+    status: PASS
+- id: count_by_size_tier
+  crl:
+    mode: crl
+    elapsed_s: 4.2
+    attempts: 1
+    output_tokens: 296
+    input_tokens: 2059
+    output_chars: 860
+    status: PASS
+- id: avg_enterprise_standard
+  crl:
+    mode: crl
+    elapsed_s: 4.8
+    attempts: 1
+    output_tokens: 314
+    input_tokens: 2060
+    output_chars: 886
+    status: PASS
+- id: large_deals_march
+  crl:
+    mode: crl
+    elapsed_s: 5.7
+    attempts: 1
+    output_tokens: 393
+    input_tokens: 2060
+    output_chars: 1073
+    status: PASS

@@ -1,0 +1,7 @@
+id: transactional_total
+question: Total value of Transactional deals
+policy: order_classification
+golden_sql: SELECT SUM(o.amount) as total FROM orders o JOIN customers c ON o.customer_id=c.customer_id
+  WHERE o.status='completed' AND NOT(c.segment='Enterprise') AND o.amount < 2000
+result_type: scalar
+golden_answer: 4850.0

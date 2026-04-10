@@ -1,0 +1,28 @@
+id: avg_spend_per_customer
+question: Average spend per customer
+policy: customer_health
+golden_sql: SELECT c.name, SUM(o.amount) as total_spend FROM orders o JOIN customers
+  c ON o.customer_id=c.customer_id WHERE o.status='completed' GROUP BY c.customer_id,
+  c.name ORDER BY total_spend DESC
+result_type: table
+golden_answer:
+- name: Acme Corp
+  total_spend: 13000.0
+- name: Initech
+  total_spend: 8650.0
+- name: Globex Inc
+  total_spend: 8200.0
+- name: Wayne Enterprises
+  total_spend: 7900.0
+- name: Stark Industries
+  total_spend: 6600.0
+- name: Aperture Science
+  total_spend: 5700.0
+- name: Massive Dynamic
+  total_spend: 5400.0
+- name: Umbrella Ltd
+  total_spend: 4500.0
+- name: Cyberdyne Systems
+  total_spend: 1200.0
+- name: Soylent Corp
+  total_spend: 800.0

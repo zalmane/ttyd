@@ -1,0 +1,57 @@
+id: top3_by_spend
+question: Top 3 customers by total spend
+policy: customer_health
+golden_answer:
+- name: Acme Corp
+  total_spend: 13000.0
+- name: Initech
+  total_spend: 8650.0
+- name: Globex Inc
+  total_spend: 8200.0
+elapsed_s: 6.9
+compiled: true
+rl_diff:
+- +            order by sum(base.by_cust.amount) desc
+- +            limit 3
+generated_sql:
+  customer_summary: "WITH \"completed_orders$intermediate\" AS (\n  SELECT\n    (\n      base.status = 'completed'\n    )\
+    \ AS \"$filter_cond\",\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.amount AS amount,\n\
+    \    base.order_date AS order_date,\n    base.status AS status\n  FROM orders AS base\n), completed_orders AS (\n  SELECT\n\
+    \    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.amount AS amount,\n    base.order_date\
+    \ AS order_date,\n    to_customer.name AS name,\n    to_customer.segment AS segment,\n    to_customer.region AS region\n\
+    \  FROM \"completed_orders$intermediate\" AS base\n  LEFT JOIN customers AS to_customer\n    ON base.customer_id = to_customer.customer_id\n\
+    \  WHERE\n    base.\"$filter_cond\"\n)\nSELECT\n  base.customer_id AS customer_id,\n  base.name AS name,\n  base.segment\
+    \ AS segment,\n  base.region AS region,\n  SUM(base.amount) AS total_spend,\n  COUNT(base.order_id) AS order_count\nFROM\
+    \ completed_orders AS base\nGROUP BY\n  base.customer_id,\n  base.name,\n  base.segment,\n  base.region\nORDER BY\n  SUM(base.amount)\
+    \ DESC\nLIMIT 3"
+agent_results:
+- entity_id: customer_summary
+  columns:
+  - customer_id
+  - name
+  - segment
+  - region
+  - total_spend
+  - order_count
+  row_count: 3
+  rows:
+  - customer_id: CUST-01
+    name: Acme Corp
+    segment: Enterprise
+    region: US
+    total_spend: 13000.0
+    order_count: 5
+  - customer_id: CUST-03
+    name: Initech
+    segment: Mid-Market
+    region: US
+    total_spend: 8650.0
+    order_count: 4
+  - customer_id: CUST-02
+    name: Globex Inc
+    segment: Enterprise
+    region: EMEA
+    total_spend: 8200.0
+    order_count: 3
+agent_summary: 'customer_summary: 3 rows, SUM(total_spend)=29,850.0, SUM(order_count)=12.0'
+status: PASS

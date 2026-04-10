@@ -1,0 +1,7 @@
+id: arr_expiring_2025
+question: ARR only from subscriptions expiring in 2025
+policy: subscription_arr
+golden_sql: SELECT SUM(s.mrr)*12 as arr FROM subscriptions s WHERE s.status='active'
+  AND YEAR(s.end_date) = 2025
+result_type: scalar
+golden_answer: 29640.0

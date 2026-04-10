@@ -1,0 +1,8 @@
+id: avg_enterprise_standard
+question: Average deal size for Enterprise Standard deals
+policy: order_classification
+golden_sql: SELECT ROUND(AVG(o.amount), 1) as avg_deal FROM orders o JOIN customers
+  c ON o.customer_id=c.customer_id WHERE o.status='completed' AND c.segment='Enterprise'
+  AND o.amount < 4000
+result_type: scalar
+golden_answer: 1410.0

@@ -1,0 +1,371 @@
+timestamp: '20260409_221337'
+test_count: 25
+modes:
+- rl
+- crl
+total_rl_s: 273.8
+total_crl_s: 309.0
+tests:
+- id: arr_total
+  rl:
+    elapsed_s: 10.9
+    mode: rl
+    format: rl
+    output_chars: 3481
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1407
+    elapsed_s: 9.4
+    format: crl
+    status: PASS
+- id: arr_excl_apac
+  rl:
+    elapsed_s: 10.8
+    mode: rl
+    format: rl
+    output_chars: 3627
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1245
+    elapsed_s: 7.7
+    format: crl
+    status: PASS
+- id: arr_multi_sub
+  rl:
+    elapsed_s: 10.8
+    mode: rl
+    format: rl
+    output_chars: 3548
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1390
+    elapsed_s: 12.5
+    format: crl
+    status: PASS
+- id: avg_mrr
+  rl:
+    elapsed_s: 10.8
+    mode: rl
+    format: rl
+    output_chars: 3350
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1337
+    elapsed_s: 10.3
+    format: crl
+    status: PASS
+- id: arr_excl_pre2025
+  rl:
+    elapsed_s: 10.8
+    mode: rl
+    format: rl
+    output_chars: 3768
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 2
+    output_chars: 3768
+    crl_error: (TYPE_MISMATCH:4) subscription_arr.active_subs - date and string are
+      not comparable
+    elapsed_s: 18.6
+    format: rl_fallback
+    status: PASS
+- id: arr_expiring_2025
+  rl:
+    elapsed_s: 10.3
+    mode: rl
+    format: rl
+    output_chars: 4129
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1489
+    elapsed_s: 12.1
+    format: crl
+    status: PASS
+- id: arr_pct_enterprise
+  rl:
+    elapsed_s: 23.4
+    mode: rl
+    format: rl
+    output_chars: 4158
+    status: SQL_ERROR
+  crl:
+    status: ERROR
+    elapsed_s: 9.4
+    error: 'HTTP 500: {"detail":"Something went wrong while processing your request.
+      Please try again."}'
+    mode: crl
+- id: arr_midmarket_us
+  rl:
+    elapsed_s: 12.4
+    mode: rl
+    format: rl
+    output_chars: 3613
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1664
+    elapsed_s: 10.8
+    format: crl
+    status: PASS
+- id: rev_jan_feb
+  rl:
+    elapsed_s: 13.6
+    mode: rl
+    format: rl
+    output_chars: 3848
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1463
+    elapsed_s: 10.6
+    format: crl
+    status: PASS
+- id: rev_excl_below_500
+  rl:
+    elapsed_s: 4.8
+    mode: rl
+    format: rl
+    output_chars: 3055
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1552
+    elapsed_s: 12.3
+    format: crl
+    status: PASS
+- id: avg_order_by_segment
+  rl:
+    elapsed_s: 8.4
+    mode: rl
+    format: rl
+    output_chars: 3498
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1419
+    elapsed_s: 9.5
+    format: crl
+    status: PASS
+- id: rev_repeat_customers
+  rl:
+    elapsed_s: 13.8
+    mode: rl
+    format: rl
+    output_chars: 5327
+    status: FAIL
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 2050
+    elapsed_s: 11.1
+    format: crl
+    status: FAIL
+- id: max_order
+  rl:
+    elapsed_s: 8.8
+    mode: rl
+    format: rl
+    output_chars: 3405
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1366
+    elapsed_s: 9.7
+    format: crl
+    status: PASS
+- id: rev_by_region
+  rl:
+    elapsed_s: 7.5
+    mode: rl
+    format: rl
+    output_chars: 3510
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1452
+    elapsed_s: 8.6
+    format: crl
+    status: PASS
+- id: rev_march_vs_jan
+  rl:
+    elapsed_s: 8.8
+    mode: rl
+    format: rl
+    output_chars: 3441
+    status: FAIL
+  crl:
+    mode: crl
+    attempts: 2
+    output_chars: 3453
+    crl_error: 'CRL parse error: (GRAMMAR_SYNTAX_ERROR:49)  - No terminal matches
+      ''.'' in the current parser context, at line 1 col 29'
+    elapsed_s: 21.6
+    format: rl_fallback
+    status: FAIL
+- id: unique_customers_march
+  rl:
+    elapsed_s: 10.5
+    mode: rl
+    format: rl
+    output_chars: 3763
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1430
+    elapsed_s: 11.7
+    format: crl
+    status: PASS
+- id: top3_by_spend
+  rl:
+    elapsed_s: 6.0
+    mode: rl
+    format: rl
+    output_chars: 2675
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1315
+    elapsed_s: 10.5
+    format: crl
+    status: PASS
+- id: customers_above_5k
+  rl:
+    elapsed_s: 17.7
+    mode: rl
+    format: rl
+    output_chars: 3873
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1314
+    elapsed_s: 18.8
+    format: crl
+    status: PASS
+- id: customers_emea
+  rl:
+    elapsed_s: 6.8
+    mode: rl
+    format: rl
+    output_chars: 2644
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 2
+    output_chars: 2644
+    crl_error: (UNGROUPED_PROPERTY_ACCESS:17) customer_health.customer_summary:total_spend
+      - Property `by_cust` is not in the GROUP BY clause and must be accessed via
+      aggregation; (UNGROUPED_PROPERTY_ACCESS:17) customer_health.customer_summary:order_count
+      - Property `by_cust` is not in the GROUP BY clause and must be accessed via
+      aggregation
+    elapsed_s: 14.4
+    format: rl_fallback
+    status: PASS
+- id: most_orders_customer
+  rl:
+    elapsed_s: 7.7
+    mode: rl
+    format: rl
+    output_chars: 2671
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1016
+    elapsed_s: 6.2
+    format: crl
+    status: PASS
+- id: avg_spend_per_customer
+  rl:
+    elapsed_s: 7.9
+    mode: rl
+    format: rl
+    output_chars: 2750
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1108
+    elapsed_s: 7.5
+    format: crl
+    status: PASS
+- id: transactional_total
+  rl:
+    elapsed_s: 13.1
+    mode: rl
+    format: rl
+    output_chars: 2929
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1221
+    elapsed_s: 12.0
+    format: crl
+    status: PASS
+- id: count_by_size_tier
+  rl:
+    elapsed_s: 11.5
+    mode: rl
+    format: rl
+    output_chars: 2865
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 2
+    output_chars: 2865
+    crl_error: "CRL parse error: Line 0: Expected 'id:type = expr' property: @dim\n\
+      \  "
+    elapsed_s: 21.6
+    format: rl_fallback
+    status: PASS
+- id: avg_enterprise_standard
+  rl:
+    elapsed_s: 11.9
+    mode: rl
+    format: rl
+    output_chars: 2797
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1233
+    elapsed_s: 11.9
+    format: crl
+    status: PASS
+- id: large_deals_march
+  rl:
+    elapsed_s: 14.8
+    mode: rl
+    format: rl
+    output_chars: 3772
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 2
+    output_chars: 2520
+    crl_error: (UNKNOWN_IDENTIFIER:14) order_classification.large_deals_march_2025
+      - Identifier in property must start with 'base', 'self', or reference a Constant
+      via its FQN
+    elapsed_s: 20.2
+    format: rl_fallback
+    status: PASS

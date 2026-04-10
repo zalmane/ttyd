@@ -1,0 +1,241 @@
+timestamp: '20260410_063801'
+modes:
+- crl
+tests:
+- id: arr_total
+  crl:
+    mode: crl
+    elapsed_s: 7.3
+    attempts: 1
+    output_tokens: 405
+    input_tokens: 1203
+    output_chars: 1019
+    status: PASS
+- id: arr_excl_apac
+  crl:
+    mode: crl
+    elapsed_s: 6.8
+    attempts: 1
+    output_tokens: 407
+    input_tokens: 1210
+    output_chars: 1101
+    status: PASS
+- id: arr_multi_sub
+  crl:
+    mode: crl
+    elapsed_s: 6.7
+    attempts: 1
+    output_tokens: 387
+    input_tokens: 1206
+    output_chars: 1060
+    status: PASS
+- id: avg_mrr
+  crl:
+    mode: crl
+    elapsed_s: 7.6
+    attempts: 1
+    output_tokens: 442
+    input_tokens: 1207
+    output_chars: 1063
+    status: PASS
+- id: arr_excl_pre2025
+  crl:
+    mode: crl
+    elapsed_s: 22.0
+    attempts: 3
+    output_tokens: 1544
+    input_tokens: 7591
+    output_chars: 1363
+    status: COMPILE_FAIL
+    error: (UNKNOWN_FUNCTION:15) subscription_arr.recent_subs - Function `date` does
+      not exist
+- id: arr_expiring_2025
+  crl:
+    mode: crl
+    elapsed_s: 22.0
+    attempts: 3
+    output_tokens: 1606
+    input_tokens: 7808
+    output_chars: 1429
+    status: COMPILE_FAIL
+    error: (UNKNOWN_FUNCTION:15) subscription_arr.expiring_2025_subs - Function `date`
+      does not exist
+- id: arr_pct_enterprise
+  crl:
+    mode: crl
+    elapsed_s: 20.9
+    attempts: 3
+    output_tokens: 1473
+    input_tokens: 7619
+    output_chars: 1451
+    status: COMPILE_FAIL
+    error: (UNKNOWN_IDENTIFIER:14) subscription_arr.arr_percentage:total_arr - Identifier
+      `to_total` could not be found on `subscription_arr.enterprise_arr_pct`; (UNKNOWN_IDENTIFIER:14)
+      subscription_arr.arr_percentage:enterprise_arr_percentage - Identifier `enterprise_arr`
+      could not be found on `subscription_arr.enterprise_arr_pct`
+- id: arr_midmarket_us
+  crl:
+    mode: crl
+    elapsed_s: 6.1
+    attempts: 1
+    output_tokens: 428
+    input_tokens: 1205
+    output_chars: 1087
+    status: PASS
+- id: rev_jan_feb
+  crl:
+    mode: crl
+    elapsed_s: 10.5
+    attempts: 2
+    output_tokens: 790
+    input_tokens: 3461
+    output_chars: 1134
+    status: PASS
+- id: rev_excl_below_500
+  crl:
+    mode: crl
+    elapsed_s: 5.7
+    attempts: 1
+    output_tokens: 394
+    input_tokens: 1190
+    output_chars: 1101
+    status: PASS
+- id: avg_order_by_segment
+  crl:
+    mode: crl
+    elapsed_s: 5.3
+    attempts: 1
+    output_tokens: 411
+    input_tokens: 1189
+    output_chars: 1176
+    status: PASS
+- id: rev_repeat_customers
+  crl:
+    mode: crl
+    elapsed_s: 15.3
+    attempts: 2
+    output_tokens: 1141
+    input_tokens: 3707
+    output_chars: 1770
+    status: FAIL
+- id: max_order
+  crl:
+    mode: crl
+    elapsed_s: 4.4
+    attempts: 1
+    output_tokens: 334
+    input_tokens: 1192
+    output_chars: 995
+    status: PASS
+- id: rev_by_region
+  crl:
+    mode: crl
+    elapsed_s: 5.3
+    attempts: 1
+    output_tokens: 372
+    input_tokens: 1187
+    output_chars: 1087
+    status: PASS
+- id: rev_march_vs_jan
+  crl:
+    mode: crl
+    elapsed_s: 21.0
+    attempts: 3
+    output_tokens: 1552
+    input_tokens: 7473
+    output_chars: 1525
+    status: COMPILE_FAIL
+    error: "Line 0: Expected 'from' in generator clause: group (1) as dummy as all_rows\n\
+      \  "
+- id: unique_customers_march
+  crl:
+    mode: crl
+    elapsed_s: 6.2
+    attempts: 1
+    output_tokens: 436
+    input_tokens: 1193
+    output_chars: 1224
+    status: PASS
+- id: top3_by_spend
+  crl:
+    mode: crl
+    elapsed_s: 4.7
+    attempts: 1
+    output_tokens: 339
+    input_tokens: 1122
+    output_chars: 987
+    status: PASS
+- id: customers_above_5k
+  crl:
+    mode: crl
+    elapsed_s: 5.0
+    attempts: 1
+    output_tokens: 368
+    input_tokens: 1126
+    output_chars: 988
+    status: PASS
+- id: customers_emea
+  crl:
+    mode: crl
+    elapsed_s: 4.9
+    attempts: 1
+    output_tokens: 379
+    input_tokens: 1122
+    output_chars: 1085
+    status: PASS
+- id: most_orders_customer
+  crl:
+    mode: crl
+    elapsed_s: 5.0
+    attempts: 1
+    output_tokens: 359
+    input_tokens: 1121
+    output_chars: 986
+    status: PASS
+- id: avg_spend_per_customer
+  crl:
+    mode: crl
+    elapsed_s: 4.0
+    attempts: 1
+    output_tokens: 293
+    input_tokens: 1118
+    output_chars: 848
+    status: PASS
+- id: transactional_total
+  crl:
+    mode: crl
+    elapsed_s: 4.4
+    attempts: 1
+    output_tokens: 318
+    input_tokens: 1122
+    output_chars: 879
+    status: PASS
+- id: count_by_size_tier
+  crl:
+    mode: crl
+    elapsed_s: 4.2
+    attempts: 1
+    output_tokens: 295
+    input_tokens: 1120
+    output_chars: 859
+    status: PASS
+- id: avg_enterprise_standard
+  crl:
+    mode: crl
+    elapsed_s: 4.1
+    attempts: 1
+    output_tokens: 294
+    input_tokens: 1121
+    output_chars: 888
+    status: PASS
+- id: large_deals_march
+  crl:
+    mode: crl
+    elapsed_s: 15.6
+    attempts: 3
+    output_tokens: 1164
+    input_tokens: 6434
+    output_chars: 1080
+    status: COMPILE_FAIL
+    error: (UNKNOWN_FUNCTION:15) order_classification.large_march_deals - Function
+      `date` does not exist

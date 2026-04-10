@@ -1,0 +1,7 @@
+id: rev_excl_below_500
+question: Revenue excluding orders below $500
+policy: revenue_analytics
+golden_sql: SELECT SUM(o.amount) as revenue FROM orders o WHERE o.status='completed'
+  AND o.amount >= 500
+result_type: scalar
+golden_answer: 61100.0

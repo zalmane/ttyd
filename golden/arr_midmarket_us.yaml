@@ -1,0 +1,7 @@
+id: arr_midmarket_us
+question: ARR from Mid-Market customers in US
+policy: subscription_arr
+golden_sql: SELECT SUM(s.mrr)*12 as arr FROM subscriptions s JOIN customers c ON s.customer_id=c.customer_id
+  WHERE s.status='active' AND c.segment='Mid-Market' AND c.region='US'
+result_type: scalar
+golden_answer: 2040.0

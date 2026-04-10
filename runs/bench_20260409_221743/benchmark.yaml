@@ -1,0 +1,373 @@
+timestamp: '20260409_221743'
+test_count: 25
+modes:
+- rl
+- crl
+total_rl_s: 317.8
+total_crl_s: 306.6
+tests:
+- id: arr_total
+  rl:
+    elapsed_s: 9.6
+    mode: rl
+    format: rl
+    output_chars: 3481
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1407
+    elapsed_s: 9.6
+    format: crl
+    status: PASS
+- id: arr_excl_apac
+  rl:
+    elapsed_s: 9.3
+    mode: rl
+    format: rl
+    output_chars: 3622
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1245
+    elapsed_s: 7.7
+    format: crl
+    status: PASS
+- id: arr_multi_sub
+  rl:
+    elapsed_s: 8.5
+    mode: rl
+    format: rl
+    output_chars: 3548
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1390
+    elapsed_s: 12.1
+    format: crl
+    status: PASS
+- id: avg_mrr
+  rl:
+    elapsed_s: 8.2
+    mode: rl
+    format: rl
+    output_chars: 3384
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1337
+    elapsed_s: 10.1
+    format: crl
+    status: PASS
+- id: arr_excl_pre2025
+  rl:
+    elapsed_s: 18.0
+    mode: rl
+    format: rl
+    output_chars: 3732
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 2
+    output_chars: 3768
+    crl_error: (TYPE_MISMATCH:4) subscription_arr.active_subs - date and string are
+      not comparable
+    elapsed_s: 18.3
+    format: rl_fallback
+    status: PASS
+- id: arr_expiring_2025
+  rl:
+    elapsed_s: 10.2
+    mode: rl
+    format: rl
+    output_chars: 4136
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1489
+    elapsed_s: 11.8
+    format: crl
+    status: PASS
+- id: arr_pct_enterprise
+  rl:
+    elapsed_s: 26.8
+    mode: rl
+    format: rl
+    output_chars: 4183
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1750
+    elapsed_s: 11.8
+    format: crl
+    status: SQL_ERROR
+    sql_error: "Catalog Error: Table with name arr_by_segment does not exist!\nDid\
+      \ you mean \"pg_prepared_statements\"?\n\nLINE 58:   FROM arr_by_segment AS\
+      \ base\n                ^"
+- id: arr_midmarket_us
+  rl:
+    elapsed_s: 23.1
+    mode: rl
+    format: rl
+    output_chars: 4124
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1664
+    elapsed_s: 10.4
+    format: crl
+    status: PASS
+- id: rev_jan_feb
+  rl:
+    elapsed_s: 12.0
+    mode: rl
+    format: rl
+    output_chars: 3481
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1472
+    elapsed_s: 10.2
+    format: crl
+    status: PASS
+- id: rev_excl_below_500
+  rl:
+    elapsed_s: 5.2
+    mode: rl
+    format: rl
+    output_chars: 3055
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1552
+    elapsed_s: 10.9
+    format: crl
+    status: PASS
+- id: avg_order_by_segment
+  rl:
+    elapsed_s: 7.3
+    mode: rl
+    format: rl
+    output_chars: 3498
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1419
+    elapsed_s: 9.0
+    format: crl
+    status: PASS
+- id: rev_repeat_customers
+  rl:
+    elapsed_s: 14.2
+    mode: rl
+    format: rl
+    output_chars: 5327
+    status: FAIL
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 2050
+    elapsed_s: 11.7
+    format: crl
+    status: FAIL
+- id: max_order
+  rl:
+    elapsed_s: 7.6
+    mode: rl
+    format: rl
+    output_chars: 3361
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1366
+    elapsed_s: 9.9
+    format: crl
+    status: PASS
+- id: rev_by_region
+  rl:
+    elapsed_s: 8.0
+    mode: rl
+    format: rl
+    output_chars: 3510
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1452
+    elapsed_s: 8.7
+    format: crl
+    status: PASS
+- id: rev_march_vs_jan
+  rl:
+    elapsed_s: 39.5
+    mode: rl
+    format: rl
+    output_chars: 4554
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 2091
+    elapsed_s: 12.8
+    format: crl
+    status: SQL_ERROR
+    sql_error: "Catalog Error: Table with name jan_revenue does not exist!\nDid you\
+      \ mean \"pg_sequence\"?\n\nLINE 89: FROM jan_revenue AS base\n             \
+      \ ^"
+- id: unique_customers_march
+  rl:
+    elapsed_s: 10.1
+    mode: rl
+    format: rl
+    output_chars: 3763
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1425
+    elapsed_s: 9.7
+    format: crl
+    status: PASS
+- id: top3_by_spend
+  rl:
+    elapsed_s: 6.4
+    mode: rl
+    format: rl
+    output_chars: 2675
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1315
+    elapsed_s: 10.2
+    format: crl
+    status: PASS
+- id: customers_above_5k
+  rl:
+    elapsed_s: 18.4
+    mode: rl
+    format: rl
+    output_chars: 3873
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1314
+    elapsed_s: 18.5
+    format: crl
+    status: PASS
+- id: customers_emea
+  rl:
+    elapsed_s: 16.0
+    mode: rl
+    format: rl
+    output_chars: 3783
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 2
+    output_chars: 3783
+    crl_error: (UNGROUPED_PROPERTY_ACCESS:17) customer_health.customer_summary:total_spend
+      - Property `by_cust` is not in the GROUP BY clause and must be accessed via
+      aggregation; (UNGROUPED_PROPERTY_ACCESS:17) customer_health.customer_summary:order_count
+      - Property `by_cust` is not in the GROUP BY clause and must be accessed via
+      aggregation
+    elapsed_s: 23.6
+    format: rl_fallback
+    status: PASS
+- id: most_orders_customer
+  rl:
+    elapsed_s: 7.1
+    mode: rl
+    format: rl
+    output_chars: 2671
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1016
+    elapsed_s: 6.1
+    format: crl
+    status: PASS
+- id: avg_spend_per_customer
+  rl:
+    elapsed_s: 6.5
+    mode: rl
+    format: rl
+    output_chars: 2750
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1108
+    elapsed_s: 9.2
+    format: crl
+    status: PASS
+- id: transactional_total
+  rl:
+    elapsed_s: 13.4
+    mode: rl
+    format: rl
+    output_chars: 2787
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1221
+    elapsed_s: 11.7
+    format: crl
+    status: PASS
+- id: count_by_size_tier
+  rl:
+    elapsed_s: 11.3
+    mode: rl
+    format: rl
+    output_chars: 2865
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1215
+    elapsed_s: 11.8
+    format: crl
+    status: PASS
+- id: avg_enterprise_standard
+  rl:
+    elapsed_s: 13.3
+    mode: rl
+    format: rl
+    output_chars: 3178
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 1
+    output_chars: 1238
+    elapsed_s: 12.4
+    format: crl
+    status: PASS
+- id: large_deals_march
+  rl:
+    elapsed_s: 7.8
+    mode: rl
+    format: rl
+    output_chars: 2520
+    status: PASS
+  crl:
+    mode: crl
+    attempts: 2
+    output_chars: 3772
+    crl_error: (TYPE_MISMATCH:4) order_classification.large_deals_march_2025 - date
+      and string are not comparable
+    elapsed_s: 28.4
+    format: rl_fallback
+    status: PASS

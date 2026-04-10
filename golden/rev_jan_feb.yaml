@@ -1,0 +1,7 @@
+id: rev_jan_feb
+question: Revenue in January and February combined
+policy: revenue_analytics
+golden_sql: SELECT SUM(o.amount) as revenue FROM orders o WHERE o.status='completed'
+  AND MONTH(o.order_date) IN (1,2) AND YEAR(o.order_date)=2025
+result_type: scalar
+golden_answer: 26750.0

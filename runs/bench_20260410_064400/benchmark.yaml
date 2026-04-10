@@ -1,0 +1,235 @@
+timestamp: '20260410_064400'
+modes:
+- crl
+tests:
+- id: arr_total
+  crl:
+    mode: crl
+    elapsed_s: 7.4
+    attempts: 1
+    output_tokens: 378
+    input_tokens: 1531
+    output_chars: 970
+    status: PASS
+- id: arr_excl_apac
+  crl:
+    mode: crl
+    elapsed_s: 8.1
+    attempts: 1
+    output_tokens: 445
+    input_tokens: 1538
+    output_chars: 1111
+    status: PASS
+- id: arr_multi_sub
+  crl:
+    mode: crl
+    elapsed_s: 8.8
+    attempts: 1
+    output_tokens: 487
+    input_tokens: 1534
+    output_chars: 1271
+    status: PASS
+- id: avg_mrr
+  crl:
+    mode: crl
+    elapsed_s: 8.1
+    attempts: 1
+    output_tokens: 421
+    input_tokens: 1535
+    output_chars: 1116
+    status: PASS
+- id: arr_excl_pre2025
+  crl:
+    mode: crl
+    elapsed_s: 9.5
+    attempts: 1
+    output_tokens: 569
+    input_tokens: 1535
+    output_chars: 1442
+    status: PASS
+- id: arr_expiring_2025
+  crl:
+    mode: crl
+    elapsed_s: 6.9
+    attempts: 1
+    output_tokens: 509
+    input_tokens: 1536
+    output_chars: 1374
+    status: PASS
+- id: arr_pct_enterprise
+  crl:
+    mode: crl
+    elapsed_s: 21.7
+    attempts: 3
+    output_tokens: 1524
+    input_tokens: 8447
+    output_chars: 1249
+    status: PASS
+- id: arr_midmarket_us
+  crl:
+    mode: crl
+    elapsed_s: 5.9
+    attempts: 1
+    output_tokens: 423
+    input_tokens: 1533
+    output_chars: 1091
+    status: PASS
+- id: rev_jan_feb
+  crl:
+    mode: crl
+    elapsed_s: 7.8
+    attempts: 1
+    output_tokens: 392
+    input_tokens: 1518
+    output_chars: 1136
+    status: PASS
+- id: rev_excl_below_500
+  crl:
+    mode: crl
+    elapsed_s: 5.5
+    attempts: 1
+    output_tokens: 372
+    input_tokens: 1518
+    output_chars: 1093
+    status: PASS
+- id: avg_order_by_segment
+  crl:
+    mode: crl
+    elapsed_s: 10.7
+    attempts: 2
+    output_tokens: 814
+    input_tokens: 4157
+    output_chars: 1198
+    status: PASS
+- id: rev_repeat_customers
+  crl:
+    mode: crl
+    elapsed_s: 25.4
+    attempts: 3
+    output_tokens: 1850
+    input_tokens: 8938
+    output_chars: 1876
+    status: COMPILE_FAIL
+    error: (UNKNOWN_IDENTIFIER:14) revenue_analytics.orders_with_repeat_flag:is_repeat
+      - Identifier `to_customer_counts` could not be found on `revenue_analytics.completed_orders`
+- id: max_order
+  crl:
+    mode: crl
+    elapsed_s: 4.7
+    attempts: 1
+    output_tokens: 364
+    input_tokens: 1520
+    output_chars: 1023
+    status: PASS
+- id: rev_by_region
+  crl:
+    mode: crl
+    elapsed_s: 4.6
+    attempts: 1
+    output_tokens: 376
+    input_tokens: 1515
+    output_chars: 1087
+    status: PASS
+- id: rev_march_vs_jan
+  crl:
+    mode: crl
+    elapsed_s: 20.2
+    attempts: 3
+    output_tokens: 1520
+    input_tokens: 8271
+    output_chars: 1505
+    status: COMPILE_FAIL
+    error: (UNGROUPED_PROPERTY_ACCESS:17) revenue_analytics.march_vs_january:january_revenue
+      - Property `revenue` is not in the GROUP BY clause and must be accessed via
+      aggregation; (UNGROUPED_PROPERTY_ACCESS:17) revenue_analytics.march_vs_january:march_revenue
+      - Property `to_mar` is not in the GROUP BY clause and must be accessed via aggregation
+- id: unique_customers_march
+  crl:
+    mode: crl
+    elapsed_s: 5.5
+    attempts: 1
+    output_tokens: 379
+    input_tokens: 1521
+    output_chars: 1067
+    status: PASS
+- id: top3_by_spend
+  crl:
+    mode: crl
+    elapsed_s: 5.2
+    attempts: 1
+    output_tokens: 329
+    input_tokens: 1450
+    output_chars: 959
+    status: PASS
+- id: customers_above_5k
+  crl:
+    mode: crl
+    elapsed_s: 4.9
+    attempts: 1
+    output_tokens: 340
+    input_tokens: 1454
+    output_chars: 986
+    status: PASS
+- id: customers_emea
+  crl:
+    mode: crl
+    elapsed_s: 4.6
+    attempts: 1
+    output_tokens: 344
+    input_tokens: 1450
+    output_chars: 985
+    status: PASS
+- id: most_orders_customer
+  crl:
+    mode: crl
+    elapsed_s: 5.0
+    attempts: 1
+    output_tokens: 385
+    input_tokens: 1449
+    output_chars: 986
+    status: PASS
+- id: avg_spend_per_customer
+  crl:
+    mode: crl
+    elapsed_s: 5.0
+    attempts: 1
+    output_tokens: 337
+    input_tokens: 1446
+    output_chars: 892
+    status: PASS
+- id: transactional_total
+  crl:
+    mode: crl
+    elapsed_s: 4.1
+    attempts: 1
+    output_tokens: 295
+    input_tokens: 1450
+    output_chars: 879
+    status: PASS
+- id: count_by_size_tier
+  crl:
+    mode: crl
+    elapsed_s: 4.4
+    attempts: 1
+    output_tokens: 298
+    input_tokens: 1448
+    output_chars: 855
+    status: PASS
+- id: avg_enterprise_standard
+  crl:
+    mode: crl
+    elapsed_s: 4.0
+    attempts: 1
+    output_tokens: 295
+    input_tokens: 1449
+    output_chars: 897
+    status: PASS
+- id: large_deals_march
+  crl:
+    mode: crl
+    elapsed_s: 5.2
+    attempts: 1
+    output_tokens: 394
+    input_tokens: 1449
+    output_chars: 1118
+    status: PASS

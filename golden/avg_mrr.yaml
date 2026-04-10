@@ -1,0 +1,6 @@
+id: avg_mrr
+question: What is the average MRR per active subscription?
+policy: subscription_arr
+golden_sql: SELECT AVG(s.mrr) as avg_mrr FROM subscriptions s WHERE s.status='active'
+result_type: scalar
+golden_answer: 327.0

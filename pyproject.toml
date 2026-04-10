@@ -1,0 +1,14 @@
+[project]
+name = "ttyd"
+version = "0.1.0"
+description = "Talk to Your Data — CRL benchmark and CLI"
+requires-python = ">=3.11.8,<4.0"
+dependencies = [
+    "riverlang",
+    "duckdb>=1.0.0",
+    "pyyaml>=6.0.0",
+    "boto3>=1.35.0",
+]
+
+[tool.uv.sources]
+riverlang = { path = "../../riverpool_dev/riverpool/riverlang", editable = true }

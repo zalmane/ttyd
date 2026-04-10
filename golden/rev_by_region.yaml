@@ -1,0 +1,14 @@
+id: rev_by_region
+question: Revenue by region
+policy: revenue_analytics
+golden_sql: SELECT c.region, SUM(o.amount) as revenue FROM orders o JOIN customers
+  c ON o.customer_id=c.customer_id WHERE o.status='completed' GROUP BY c.region ORDER
+  BY c.region
+result_type: table
+golden_answer:
+- region: APAC
+  revenue: 5300.0
+- region: EMEA
+  revenue: 21800.0
+- region: US
+  revenue: 34850.0

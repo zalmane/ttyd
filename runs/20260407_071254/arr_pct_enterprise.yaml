@@ -1,0 +1,172 @@
+id: arr_pct_enterprise
+question: What percentage of total ARR comes from Enterprise?
+policy: subscription_arr
+golden_answer: 84.4
+elapsed_s: 49.3
+compiled: true
+rl_diff:
+- '-        /** */ property subscription_id("Subscription ID") -> string'
+- '-        /** */ property customer_id("Customer ID") -> string'
+- '-        /** */ property product_id("Product ID") -> string'
+- '-        /** */ property mrr("MRR") -> float'
+- '-        /** */ property start_date("Start Date") -> date'
+- '-        /** */ property end_date("End Date") -> date'
+- '-        /** */ property status("Status") -> string'
+- +        /** Subscription identifier */
+- '+        property subscription_id("Subscription ID") : string'
+- +        /** Customer identifier */
+- '+        property customer_id("Customer ID") : string'
+- +        /** Product identifier */
+- '+        property product_id("Product ID") : string'
+- +        /** Monthly recurring revenue */
+- '+        property mrr("MRR") : float'
+- +        /** Subscription start date */
+- '+        property start_date("Start Date") : date'
+- +        /** Subscription end date */
+- '+        property end_date("End Date") : date'
+- +        /** Subscription status */
+- '+        property status("Status") : string'
+- '-        /** */ property customer_id("Customer ID") -> string'
+- '-        /** */ property name("Name") -> string'
+- '-        /** */ property segment("Segment") -> string'
+- '-        /** */ property region("Region") -> string'
+- +        /** Customer identifier */
+- '+        property customer_id("Customer ID") : string'
+- +        /** Customer name */
+- '+        property name("Name") : string'
+- +        /** Customer segment */
+- '+        property segment("Segment") : string'
+- +        /** Customer region */
+- '+        property region("Region") : string'
+- '-        generated from entity subscription_arr.subscriptions filter (base.status == "active")'
+- '-        /** */ property subscription_id("Subscription ID") -> string { base.subscription_id }'
+- '-        /** */ property customer_id("Customer ID") -> string { base.customer_id }'
+- '-        /** */ property product_id("Product ID") -> string { base.product_id }'
+- '-        /** */ property mrr("MRR") -> float { base.mrr }'
+- '-        /** */ property start_date("Start Date") -> date { base.start_date }'
+- '-        /** */ property end_date("End Date") -> date { base.end_date }'
+- '-        /** Denormalized for grouping */'
+- +        generated from entity subscription_arr.subscriptions filter base.status == "active"
+- +        /** Subscription identifier */
+- +        property subscription_id("Subscription ID") -> string { base.subscription_id }
+- +        /** Customer identifier */
+- +        property customer_id("Customer ID") -> string { base.customer_id }
+- +        /** Product identifier */
+- +        property product_id("Product ID") -> string { base.product_id }
+- +        /** Monthly recurring revenue */
+- +        property mrr("MRR") -> float { base.mrr }
+- +        /** Subscription start date */
+- +        property start_date("Start Date") -> date { base.start_date }
+- +        /** Subscription end date */
+- +        property end_date("End Date") -> date { base.end_date }
+- +        /** Customer segment */
+- '-        /** Denormalized for grouping */'
+- +        /** Customer region */
+- '-    /** ARR by customer */'
+- '-    entity arr_by_customer("ARR By Customer") {'
+- '-        generated from entity subscription_arr.active_subs'
+- '-            group base.customer_id as by_cust'
+- '-        output'
+- '-'
+- '-        /** */ @dimension property customer_id("Customer ID") -> string { base.customer_id }'
+- '-        /** */ @metric property arr("ARR") -> float { sum(base.by_cust.mrr) * 12 }'
+- '-        /** */ @metric property sub_count("Subscription Count") -> int { count(base.by_cust.subscription_id) }'
+- '-    }'
+- '-'
+- '-    /** ARR by customer segment */'
+- +    /** ARR by customer segment with total ARR computed inline */
+- +
+- +        /** Customer segment */
+- +        @dimension
+- +        property segment("Segment") -> string { base.segment }
+- +        /** Annual recurring revenue */
+- +        @metric
+- +        property arr("ARR") -> float { sum(base.by_seg.mrr) * 12.0 }
+- +        /** Number of subscriptions */
+- +        @metric
+- +        property sub_count("Subscription Count") -> int { count(base.by_seg.subscription_id) }
+- +    }
+- +
+- +    /** Total ARR across all segments */
+- +    entity total_arr("Total ARR") {
+- +        generated from entity subscription_arr.active_subs
+- +            group (1) as one as all_rows
+- +
+- +        /** Total annual recurring revenue */
+- +        @metric
+- +        property total_arr("Total ARR") -> float { sum(base.all_rows.mrr) * 12.0 }
+- +    }
+- +
+- +    /** All segment ARRs with cross join to total for percentage calculation */
+- +    entity segment_with_total("Segment With Total") {
+- +        generated from entity subscription_arr.arr_by_segment
+- +
+- +        /** Customer segment */
+- +        property segment("Segment") -> string { base.segment }
+- +        /** Segment ARR */
+- +        property segment_arr("Segment ARR") -> float { base.arr }
+- +        /** Number of subscriptions */
+- +        property sub_count("Subscription Count") -> int { base.sub_count }
+- +
+- +        /** Cross join to total ARR */
+- +        relation to_total("To Total") {
+- +            related to one subscription_arr.total_arr using 1 == 1
+- +        }
+- +    }
+- +
+- +    /** Enterprise ARR percentage of total */
+- +    entity enterprise_arr_pct("Enterprise ARR Percentage") {
+- +        generated from entity subscription_arr.segment_with_total
+- +            filter base.segment == "Enterprise"
+- '-        /** */ @dimension property segment("Segment") -> string { base.segment }'
+- '-        /** */ @metric property arr("ARR") -> float { sum(base.by_seg.mrr) * 12 }'
+- '-        /** */ @metric property sub_count("Subscription Count") -> int { count(base.by_seg.subscription_id) }'
+- +        /** Customer segment */
+- +        @dimension
+- +        property segment("Segment") -> string { base.segment }
+- +        /** Enterprise ARR */
+- +        @metric
+- +        property enterprise_arr("Enterprise ARR") -> float { base.segment_arr }
+- +        /** Total ARR across all segments */
+- +        @metric
+- +        property total_arr("Total ARR") -> float { base.to_total.total_arr }
+- +        /** Enterprise percentage of total ARR */
+- +        @metric
+- +        property enterprise_pct("Enterprise Percentage") -> float { (base.segment_arr / base.to_total.total_arr) * 100.0
+  }
+- '-'
+generated_sql:
+  enterprise_arr_pct: "WITH \"active_subs$intermediate\" AS (\n  SELECT\n    base.status = 'active' AS \"$filter_cond\",\n\
+    \    base.subscription_id AS subscription_id,\n    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n\
+    \    base.mrr AS mrr,\n    base.start_date AS start_date,\n    base.end_date AS end_date,\n    base.status AS status\n\
+    \  FROM subscriptions AS base\n), active_subs AS (\n  SELECT\n    base.subscription_id AS subscription_id,\n    base.customer_id\
+    \ AS customer_id,\n    base.product_id AS product_id,\n    base.mrr AS mrr,\n    base.start_date AS start_date,\n    base.end_date\
+    \ AS end_date,\n    to_customer.segment AS segment,\n    to_customer.region AS region\n  FROM \"active_subs$intermediate\"\
+    \ AS base\n  LEFT JOIN customers AS to_customer\n    ON base.customer_id = to_customer.customer_id\n  WHERE\n    base.\"\
+    $filter_cond\"\n), arr_by_segment AS (\n  SELECT\n    base.segment AS segment,\n    SUM(base.mrr) * 12.0 AS arr,\n   \
+    \ COUNT(base.subscription_id) AS sub_count\n  FROM active_subs AS base\n  GROUP BY\n    base.segment\n), \"total_arr$intermediate\"\
+    \ AS (\n  SELECT\n    1 AS one,\n    base.subscription_id AS subscription_id,\n    base.customer_id AS customer_id,\n\
+    \    base.product_id AS product_id,\n    base.mrr AS mrr,\n    base.start_date AS start_date,\n    base.end_date AS end_date,\n\
+    \    base.segment AS segment,\n    base.region AS region\n  FROM active_subs AS base\n), total_arr AS (\n  SELECT\n  \
+    \  SUM(base.mrr) * 12.0 AS total_arr\n  FROM \"total_arr$intermediate\" AS base\n  GROUP BY\n    base.one\n), segment_with_total\
+    \ AS (\n  SELECT\n    base.segment AS segment,\n    base.arr AS segment_arr,\n    base.sub_count AS sub_count\n  FROM\
+    \ arr_by_segment AS base\n), \"enterprise_arr_pct$intermediate\" AS (\n  SELECT\n    base.segment = 'Enterprise' AS \"\
+    $filter_cond\",\n    base.segment AS segment,\n    base.segment_arr AS segment_arr,\n    base.sub_count AS sub_count\n\
+    \  FROM segment_with_total AS base\n)\nSELECT\n  base.segment AS segment,\n  base.segment_arr AS enterprise_arr,\n  to_total.total_arr\
+    \ AS total_arr,\n  (\n    base.segment_arr / to_total.total_arr\n  ) * 100.0 AS enterprise_pct\nFROM \"enterprise_arr_pct$intermediate\"\
+    \ AS base\nLEFT JOIN total_arr AS to_total\n  ON 1 = 1\nWHERE\n  base.\"$filter_cond\""
+agent_results:
+- entity_id: enterprise_arr_pct
+  columns:
+  - segment
+  - enterprise_arr
+  - total_arr
+  - enterprise_pct
+  row_count: 1
+  rows:
+  - segment: Enterprise
+    enterprise_arr: 33120.0
+    total_arr: 39240.0
+    enterprise_pct: 84.40366972477065
+agent_summary: 'enterprise_arr_pct: [Enterprise, 33,120.0, 39,240.0, 84.4]'
+status: PASS

@@ -1,0 +1,14 @@
+id: top3_by_spend
+question: Top 3 customers by total spend
+policy: customer_health
+golden_sql: SELECT c.name, SUM(o.amount) as total_spend FROM orders o JOIN customers
+  c ON o.customer_id=c.customer_id WHERE o.status='completed' GROUP BY c.customer_id,
+  c.name ORDER BY total_spend DESC LIMIT 3
+result_type: table
+golden_answer:
+- name: Acme Corp
+  total_spend: 13000.0
+- name: Initech
+  total_spend: 8650.0
+- name: Globex Inc
+  total_spend: 8200.0

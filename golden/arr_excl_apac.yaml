@@ -1,0 +1,7 @@
+id: arr_excl_apac
+question: ARR from US and EMEA only, excluding APAC
+policy: subscription_arr
+golden_sql: SELECT SUM(s.mrr)*12 as arr FROM subscriptions s JOIN customers c ON s.customer_id=c.customer_id
+  WHERE s.status='active' AND c.region != 'APAC'
+result_type: scalar
+golden_answer: 37200.0

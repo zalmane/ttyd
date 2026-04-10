@@ -1,0 +1,236 @@
+timestamp: '20260410_065113'
+modes:
+- crl
+tests:
+- id: arr_total
+  crl:
+    mode: crl
+    elapsed_s: 7.2
+    attempts: 1
+    output_tokens: 396
+    input_tokens: 1509
+    output_chars: 1009
+    status: PASS
+- id: arr_excl_apac
+  crl:
+    mode: crl
+    elapsed_s: 7.3
+    attempts: 1
+    output_tokens: 378
+    input_tokens: 1516
+    output_chars: 1012
+    status: PASS
+- id: arr_multi_sub
+  crl:
+    mode: crl
+    elapsed_s: 8.1
+    attempts: 1
+    output_tokens: 480
+    input_tokens: 1512
+    output_chars: 1297
+    status: PASS
+- id: avg_mrr
+  crl:
+    mode: crl
+    elapsed_s: 19.1
+    attempts: 3
+    output_tokens: 1145
+    input_tokens: 7690
+    output_chars: 1125
+    status: COMPILE_FAIL
+    error: (GROUP_FIELD_ACCESSES_RELATION:9) subscription_arr.average_mrr - GROUP
+      BY field `(1)` accesses a relation. GROUP BY can only access direct properties
+      from the base entity
+- id: arr_excl_pre2025
+  crl:
+    mode: crl
+    elapsed_s: 9.5
+    attempts: 1
+    output_tokens: 621
+    input_tokens: 1513
+    output_chars: 1649
+    status: PASS
+- id: arr_expiring_2025
+  crl:
+    mode: crl
+    elapsed_s: 6.7
+    attempts: 1
+    output_tokens: 483
+    input_tokens: 1514
+    output_chars: 1293
+    status: PASS
+- id: arr_pct_enterprise
+  crl:
+    mode: crl
+    elapsed_s: 7.3
+    attempts: 1
+    output_tokens: 461
+    input_tokens: 1512
+    output_chars: 1294
+    status: PASS
+- id: arr_midmarket_us
+  crl:
+    mode: crl
+    elapsed_s: 5.1
+    attempts: 1
+    output_tokens: 373
+    input_tokens: 1511
+    output_chars: 1005
+    status: PASS
+- id: rev_jan_feb
+  crl:
+    mode: crl
+    elapsed_s: 4.8
+    attempts: 1
+    output_tokens: 370
+    input_tokens: 1496
+    output_chars: 1067
+    status: PASS
+- id: rev_excl_below_500
+  crl:
+    mode: crl
+    elapsed_s: 5.9
+    attempts: 1
+    output_tokens: 449
+    input_tokens: 1496
+    output_chars: 1308
+    status: PASS
+- id: avg_order_by_segment
+  crl:
+    mode: crl
+    elapsed_s: 9.8
+    attempts: 2
+    output_tokens: 763
+    input_tokens: 4036
+    output_chars: 1135
+    status: PASS
+- id: rev_repeat_customers
+  crl:
+    mode: crl
+    elapsed_s: 26.3
+    attempts: 3
+    output_tokens: 2037
+    input_tokens: 9339
+    output_chars: 2068
+    status: COMPILE_FAIL
+    error: (UNKNOWN_IDENTIFIER:14) revenue_analytics.filtered_repeat_orders - Identifier
+      in property must start with 'base', 'self', or reference a Constant via its
+      FQN
+- id: max_order
+  crl:
+    mode: crl
+    elapsed_s: 5.5
+    attempts: 1
+    output_tokens: 404
+    input_tokens: 1498
+    output_chars: 1120
+    status: PASS
+- id: rev_by_region
+  crl:
+    mode: crl
+    elapsed_s: 4.7
+    attempts: 1
+    output_tokens: 374
+    input_tokens: 1493
+    output_chars: 1082
+    status: PASS
+- id: rev_march_vs_jan
+  crl:
+    mode: crl
+    elapsed_s: 22.8
+    attempts: 3
+    output_tokens: 1755
+    input_tokens: 9063
+    output_chars: 1629
+    status: COMPILE_FAIL
+    error: "Line 0: Expected 'from' in generator clause: group (1) as d as all\n  "
+- id: unique_customers_march
+  crl:
+    mode: crl
+    elapsed_s: 11.4
+    attempts: 2
+    output_tokens: 841
+    input_tokens: 4149
+    output_chars: 1253
+    status: PASS
+- id: top3_by_spend
+  crl:
+    mode: crl
+    elapsed_s: 4.6
+    attempts: 1
+    output_tokens: 339
+    input_tokens: 1428
+    output_chars: 987
+    status: PASS
+- id: customers_above_5k
+  crl:
+    mode: crl
+    elapsed_s: 4.6
+    attempts: 1
+    output_tokens: 344
+    input_tokens: 1432
+    output_chars: 986
+    status: PASS
+- id: customers_emea
+  crl:
+    mode: crl
+    elapsed_s: 4.4
+    attempts: 1
+    output_tokens: 345
+    input_tokens: 1428
+    output_chars: 987
+    status: PASS
+- id: most_orders_customer
+  crl:
+    mode: crl
+    elapsed_s: 4.8
+    attempts: 1
+    output_tokens: 363
+    input_tokens: 1427
+    output_chars: 986
+    status: PASS
+- id: avg_spend_per_customer
+  crl:
+    mode: crl
+    elapsed_s: 9.8
+    attempts: 2
+    output_tokens: 717
+    input_tokens: 3824
+    output_chars: 972
+    status: FAIL
+- id: transactional_total
+  crl:
+    mode: crl
+    elapsed_s: 4.5
+    attempts: 1
+    output_tokens: 319
+    input_tokens: 1428
+    output_chars: 965
+    status: PASS
+- id: count_by_size_tier
+  crl:
+    mode: crl
+    elapsed_s: 3.9
+    attempts: 1
+    output_tokens: 301
+    input_tokens: 1426
+    output_chars: 864
+    status: PASS
+- id: avg_enterprise_standard
+  crl:
+    mode: crl
+    elapsed_s: 4.8
+    attempts: 1
+    output_tokens: 295
+    input_tokens: 1427
+    output_chars: 881
+    status: PASS
+- id: large_deals_march
+  crl:
+    mode: crl
+    elapsed_s: 5.4
+    attempts: 1
+    output_tokens: 398
+    input_tokens: 1427
+    output_chars: 1118
+    status: PASS

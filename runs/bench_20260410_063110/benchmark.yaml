@@ -1,0 +1,267 @@
+timestamp: '20260410_063110'
+modes:
+- crl
+tests:
+- id: arr_total
+  crl:
+    mode: crl
+    elapsed_s: 8.5
+    attempts: 3
+    output_tokens: 273
+    input_tokens: 3539
+    output_chars: 117
+    status: COMPILE_FAIL
+    error: (MISSING_SOURCE:5) subscription_arr.total_arr - Entity `subscription_arr.total_arr`
+      missing source `subscription_arr.active_subs`
+- id: arr_excl_apac
+  crl:
+    mode: crl
+    elapsed_s: 12.9
+    attempts: 2
+    output_tokens: 739
+    input_tokens: 2559
+    output_chars: 969
+    status: PASS
+- id: arr_multi_sub
+  crl:
+    mode: crl
+    elapsed_s: 9.3
+    attempts: 2
+    output_tokens: 472
+    input_tokens: 2152
+    output_chars: 822
+    status: PASS
+- id: avg_mrr
+  crl:
+    mode: crl
+    elapsed_s: 14.4
+    attempts: 3
+    output_tokens: 407
+    input_tokens: 3553
+    output_chars: 528
+    status: COMPILE_FAIL
+    error: (GROUP_FIELD_ACCESSES_RELATION:9) subscription_arr.average_mrr - GROUP
+      BY field `1` accesses a relation. GROUP BY can only access direct properties
+      from the base entity
+- id: arr_excl_pre2025
+  crl:
+    mode: crl
+    elapsed_s: 21.1
+    attempts: 3
+    output_tokens: 1369
+    input_tokens: 5979
+    output_chars: 1380
+    status: COMPILE_FAIL
+    error: (GRAMMAR_SYNTAX_ERROR:49)  - No terminal matches ':' in the current parser
+      context, at line 1 col 33
+- id: arr_expiring_2025
+  crl:
+    mode: crl
+    elapsed_s: 5.6
+    attempts: 1
+    output_tokens: 408
+    input_tokens: 749
+    output_chars: 1081
+    status: PASS
+- id: arr_pct_enterprise
+  crl:
+    mode: crl
+    elapsed_s: 14.5
+    attempts: 3
+    output_tokens: 836
+    input_tokens: 4557
+    output_chars: 968
+    status: COMPILE_FAIL
+    error: (GROUP_FIELD_ACCESSES_RELATION:9) subscription_arr.enterprise_segment -
+      GROUP BY field `1` accesses a relation. GROUP BY can only access direct properties
+      from the base entity; (GROUP_FIELD_ACCESSES_RELATION:9) subscription_arr.all_segments
+      - GROUP BY field `1` accesses a relation. GROUP BY can only access direct properties
+      from the base entity
+- id: arr_midmarket_us
+  crl:
+    mode: crl
+    elapsed_s: 16.0
+    attempts: 3
+    output_tokens: 1113
+    input_tokens: 5352
+    output_chars: 979
+    status: PASS
+- id: rev_jan_feb
+  crl:
+    mode: crl
+    elapsed_s: 22.3
+    attempts: 3
+    output_tokens: 1121
+    input_tokens: 5348
+    output_chars: 1053
+    status: COMPILE_FAIL
+    error: (UNKNOWN_FUNCTION:15) revenue_analytics.jan_feb_revenue:total_revenue -
+      Function `sum` is not implemented for the given arguments types, Expected a
+      collection, got float; (UNKNOWN_FUNCTION:15) revenue_analytics.jan_feb_revenue:total_orders
+      - Function `sum` is not implemented for the given arguments types, Expected
+      a collection, got int
+- id: rev_excl_below_500
+  crl:
+    mode: crl
+    elapsed_s: 15.2
+    attempts: 3
+    output_tokens: 1105
+    input_tokens: 5357
+    output_chars: 1072
+    status: COMPILE_FAIL
+    error: (GROUP_FIELD_ACCESSES_RELATION:9) revenue_analytics.high_value_revenue
+      - GROUP BY field `1` accesses a relation. GROUP BY can only access direct properties
+      from the base entity
+- id: avg_order_by_segment
+  crl:
+    mode: crl
+    elapsed_s: 9.8
+    attempts: 3
+    output_tokens: 609
+    input_tokens: 4025
+    output_chars: 682
+    status: COMPILE_FAIL
+    error: (TYPE_MISMATCH:4) revenue_analytics.avg_order_value_by_segment:segment
+      - Type mismatch, expected `string` but got `list[string]`
+- id: rev_repeat_customers
+  crl:
+    mode: crl
+    elapsed_s: 16.4
+    attempts: 3
+    output_tokens: 1160
+    input_tokens: 4998
+    output_chars: 1437
+    status: COMPILE_FAIL
+    error: (TYPE_MISMATCH:4) revenue_analytics.customer_purchase_counts:customer_id
+      - Type mismatch, expected `string` but got `list[string]`; (UNKNOWN_IDENTIFIER:14)
+      revenue_analytics.repeat_customer_revenue - Identifier in property must start
+      with 'base', 'self', or reference a Constant via its FQN
+- id: max_order
+  crl:
+    mode: crl
+    elapsed_s: 5.6
+    attempts: 2
+    output_tokens: 353
+    input_tokens: 1967
+    output_chars: 681
+    status: PASS
+- id: rev_by_region
+  crl:
+    mode: crl
+    elapsed_s: 4.9
+    attempts: 2
+    output_tokens: 280
+    input_tokens: 1881
+    output_chars: 581
+    status: PASS
+- id: rev_march_vs_jan
+  crl:
+    mode: crl
+    elapsed_s: 13.7
+    attempts: 3
+    output_tokens: 943
+    input_tokens: 4909
+    output_chars: 793
+    status: COMPILE_FAIL
+    error: (GRAMMAR_SYNTAX_ERROR:49)  - No terminal matches ',' in the current parser
+      context, at line 1 col 31
+- id: unique_customers_march
+  crl:
+    mode: crl
+    elapsed_s: 5.0
+    attempts: 1
+    output_tokens: 366
+    input_tokens: 734
+    output_chars: 1059
+    status: FAIL
+- id: top3_by_spend
+  crl:
+    mode: crl
+    elapsed_s: 4.9
+    attempts: 1
+    output_tokens: 345
+    input_tokens: 663
+    output_chars: 996
+    status: PASS
+- id: customers_above_5k
+  crl:
+    mode: crl
+    elapsed_s: 4.7
+    attempts: 1
+    output_tokens: 345
+    input_tokens: 667
+    output_chars: 988
+    status: PASS
+- id: customers_emea
+  crl:
+    mode: crl
+    elapsed_s: 3.5
+    attempts: 1
+    output_tokens: 256
+    input_tokens: 663
+    output_chars: 725
+    status: PASS
+- id: most_orders_customer
+  crl:
+    mode: crl
+    elapsed_s: 4.7
+    attempts: 1
+    output_tokens: 309
+    input_tokens: 662
+    output_chars: 888
+    status: PASS
+- id: avg_spend_per_customer
+  crl:
+    mode: crl
+    elapsed_s: 13.6
+    attempts: 3
+    output_tokens: 885
+    input_tokens: 4545
+    output_chars: 875
+    status: COMPILE_FAIL
+    error: (GROUP_FIELD_ACCESSES_RELATION:9) customer_health.average_spend_per_customer
+      - GROUP BY field `1==1` accesses a relation. GROUP BY can only access direct
+      properties from the base entity
+- id: transactional_total
+  crl:
+    mode: crl
+    elapsed_s: 8.7
+    attempts: 3
+    output_tokens: 409
+    input_tokens: 4018
+    output_chars: 179
+    status: COMPILE_FAIL
+    error: "Line 0: No 'as' found in group clause: []\n  "
+- id: count_by_size_tier
+  crl:
+    mode: crl
+    elapsed_s: 7.7
+    attempts: 3
+    output_tokens: 332
+    input_tokens: 3407
+    output_chars: 308
+    status: COMPILE_FAIL
+    error: (GROUP_FIELD_ACCESSES_RELATION:9) order_classification.deal_size_counts
+      - GROUP BY field `size_tier` accesses a relation. GROUP BY can only access direct
+      properties from the base entity
+- id: avg_enterprise_standard
+  crl:
+    mode: crl
+    elapsed_s: 6.8
+    attempts: 3
+    output_tokens: 260
+    input_tokens: 3234
+    output_chars: 275
+    status: COMPILE_FAIL
+    error: '(GRAMMAR_SYNTAX_ERROR:49)  - Unexpected end-of-input. Expected one of: '
+- id: large_deals_march
+  crl:
+    mode: crl
+    elapsed_s: 9.8
+    attempts: 3
+    output_tokens: 539
+    input_tokens: 3791
+    output_chars: 504
+    status: COMPILE_FAIL
+    error: (TYPE_MISMATCH:4) order_classification.large_deals_march_2025 - date and
+      option[date] are not comparable

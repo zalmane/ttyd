@@ -1,0 +1,77 @@
+id: rev_excl_below_500
+question: Revenue excluding orders below $500
+policy: revenue_analytics
+golden_answer: 61100.0
+elapsed_s: 6.6
+compiled: true
+rl_diff:
+- '-    /** Completed orders enriched with customer data */'
+- +    /** Completed orders enriched with customer data, excluding orders below $500 */
+- '-        generated from entity revenue_analytics.orders filter (base.status == "completed")'
+- +        generated from entity revenue_analytics.orders filter (base.status == "completed") and (base.amount >= 500.0)
+generated_sql:
+  monthly_revenue: "WITH \"completed_orders$intermediate\" AS (\n  SELECT\n    (\n      base.status = 'completed'\n    ) AND\
+    \ (\n      base.amount >= 500.0\n    ) AS \"$filter_cond\",\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n\
+    \    base.product_id AS product_id,\n    base.amount AS amount,\n    base.order_date AS order_date,\n    base.status AS\
+    \ status\n  FROM orders AS base\n), completed_orders AS (\n  SELECT\n    base.order_id AS order_id,\n    base.customer_id\
+    \ AS customer_id,\n    base.product_id AS product_id,\n    base.amount AS amount,\n    base.order_date AS order_date,\n\
+    \    to_customer.segment AS segment,\n    to_customer.region AS region\n  FROM \"completed_orders$intermediate\" AS base\n\
+    \  LEFT JOIN customers AS to_customer\n    ON base.customer_id = to_customer.customer_id\n  WHERE\n    base.\"$filter_cond\"\
+    \n), \"monthly_revenue$intermediate\" AS (\n  SELECT\n    YEAR(base.order_date) AS yr,\n    MONTH(base.order_date) AS\
+    \ mnth,\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n  \
+    \  base.amount AS amount,\n    base.order_date AS order_date,\n    base.segment AS segment,\n    base.region AS region\n\
+    \  FROM completed_orders AS base\n)\nSELECT\n  base.yr AS year,\n  base.mnth AS month,\n  SUM(base.amount) AS revenue,\n\
+    \  COUNT(base.order_id) AS order_count\nFROM \"monthly_revenue$intermediate\" AS base\nGROUP BY\n  base.yr,\n  base.mnth"
+  revenue_by_segment: "WITH \"completed_orders$intermediate\" AS (\n  SELECT\n    (\n      base.status = 'completed'\n   \
+    \ ) AND (\n      base.amount >= 500.0\n    ) AS \"$filter_cond\",\n    base.order_id AS order_id,\n    base.customer_id\
+    \ AS customer_id,\n    base.product_id AS product_id,\n    base.amount AS amount,\n    base.order_date AS order_date,\n\
+    \    base.status AS status\n  FROM orders AS base\n), completed_orders AS (\n  SELECT\n    base.order_id AS order_id,\n\
+    \    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n    base.amount AS amount,\n    base.order_date\
+    \ AS order_date,\n    to_customer.segment AS segment,\n    to_customer.region AS region\n  FROM \"completed_orders$intermediate\"\
+    \ AS base\n  LEFT JOIN customers AS to_customer\n    ON base.customer_id = to_customer.customer_id\n  WHERE\n    base.\"\
+    $filter_cond\"\n)\nSELECT\n  base.segment AS segment,\n  SUM(base.amount) AS revenue,\n  COUNT(base.order_id) AS order_count\n\
+    FROM completed_orders AS base\nGROUP BY\n  base.segment"
+agent_results:
+- entity_id: monthly_revenue
+  columns:
+  - year
+  - month
+  - revenue
+  - order_count
+  row_count: 4
+  rows:
+  - year: 2025
+    month: 1
+    revenue: 14400.0
+    order_count: 6
+  - year: 2025
+    month: 2
+    revenue: 11900.0
+    order_count: 5
+  - year: 2025
+    month: 3
+    revenue: 20600.0
+    order_count: 7
+  - year: 2025
+    month: 4
+    revenue: 14200.0
+    order_count: 6
+- entity_id: revenue_by_segment
+  columns:
+  - segment
+  - revenue
+  - order_count
+  row_count: 3
+  rows:
+  - segment: SMB
+    revenue: 1600.0
+    order_count: 2
+  - segment: Enterprise
+    revenue: 41100.0
+    order_count: 16
+  - segment: Mid-Market
+    revenue: 18400.0
+    order_count: 6
+agent_summary: 'monthly_revenue: 4 rows, SUM(year)=8,100.0, SUM(month)=10.0, SUM(revenue)=61,100.0, SUM(order_count)=24.0
+  | revenue_by_segment: 3 rows, SUM(revenue)=61,100.0, SUM(order_count)=24.0'
+status: PASS

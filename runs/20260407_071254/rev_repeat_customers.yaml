@@ -1,0 +1,189 @@
+id: rev_repeat_customers
+question: Revenue from repeat customers only
+policy: revenue_analytics
+golden_answer: 56650.0
+elapsed_s: 66.9
+compiled: true
+rl_diff:
+- '-        /** */ property order_id("Order ID") -> string'
+- '-        /** */ property customer_id("Customer ID") -> string'
+- '-        /** */ property product_id("Product ID") -> string'
+- '-        /** */ property amount("Amount") -> float'
+- '-        /** */ property order_date("Order Date") -> date'
+- '-        /** */ property status("Status") -> string'
+- +        /** Order identifier */
+- '+        property order_id("Order ID") : string'
+- +        /** Customer identifier */
+- '+        property customer_id("Customer ID") : string'
+- +        /** Product identifier */
+- '+        property product_id("Product ID") : string'
+- +        /** Order amount */
+- '+        property amount("Amount") : float'
+- +        /** Order date */
+- '+        property order_date("Order Date") : date'
+- +        /** Order status */
+- '+        property status("Status") : string'
+- '-        /** */ property customer_id("Customer ID") -> string'
+- '-        /** */ property name("Name") -> string'
+- '-        /** */ property segment("Segment") -> string'
+- '-        /** */ property region("Region") -> string'
+- '-        /** */ property signup_date("Signup Date") -> date'
+- +        /** Customer identifier */
+- '+        property customer_id("Customer ID") : string'
+- +        /** Customer name */
+- '+        property name("Name") : string'
+- +        /** Customer segment */
+- '+        property segment("Segment") : string'
+- +        /** Customer region */
+- '+        property region("Region") : string'
+- +        /** Signup date */
+- '+        property signup_date("Signup Date") : date'
+- '-        generated from entity revenue_analytics.orders filter (base.status == "completed")'
+- '-        /** */ property order_id("Order ID") -> string { base.order_id }'
+- '-        /** */ property customer_id("Customer ID") -> string { base.customer_id }'
+- '-        /** */ property product_id("Product ID") -> string { base.product_id }'
+- '-        /** */ property amount("Amount") -> float { base.amount }'
+- '-        /** */ property order_date("Order Date") -> date { base.order_date }'
+- '-        /** Denormalized segment for grouping */'
+- +        generated from entity revenue_analytics.orders filter base.status == "completed"
+- +        /** Order identifier */
+- +        property order_id("Order ID") -> string { base.order_id }
+- +        /** Customer identifier */
+- +        property customer_id("Customer ID") -> string { base.customer_id }
+- +        /** Product identifier */
+- +        property product_id("Product ID") -> string { base.product_id }
+- +        /** Order amount */
+- +        property amount("Amount") -> float { base.amount }
+- +        /** Order date */
+- +        property order_date("Order Date") -> date { base.order_date }
+- +        /** Customer segment */
+- '-        /** Denormalized region for grouping */'
+- +        /** Customer region */
+- '-    /** Monthly revenue totals */'
+- +    /** Customer order counts to identify repeat customers */
+- +    entity customer_order_counts("Customer Order Counts") {
+- +        generated from entity revenue_analytics.completed_orders
+- +            group base.customer_id as by_cust
+- +
+- +        /** Customer identifier */
+- +        property customer_id("Customer ID") -> string { base.customer_id }
+- +        /** Total orders per customer */
+- +        property order_count("Order Count") -> int { count(base.by_cust.order_id) }
+- +    }
+- +
+- +    /** Orders enriched with customer order count */
+- +    entity orders_with_counts("Orders With Counts") {
+- +        generated from entity revenue_analytics.completed_orders
+- +
+- +        /** Order identifier */
+- +        property order_id("Order ID") -> string { base.order_id }
+- +        /** Customer identifier */
+- +        property customer_id("Customer ID") -> string { base.customer_id }
+- +        /** Order amount */
+- +        property amount("Amount") -> float { base.amount }
+- +        /** Order date */
+- +        property order_date("Order Date") -> date { base.order_date }
+- +        /** Customer segment */
+- +        property segment("Segment") -> string { base.segment }
+- +
+- +        /** Lookup to customer order counts */
+- +        relation to_order_count("To Order Count") {
+- +            related to one revenue_analytics.customer_order_counts using base.customer_id == target.customer_id
+- +        }
+- +    }
+- +
+- +    /** Orders from repeat customers only */
+- +    entity repeat_customer_orders("Repeat Customer Orders") {
+- +        generated from entity revenue_analytics.orders_with_counts filter base.to_order_count.order_count > 1
+- +
+- +        /** Order identifier */
+- +        property order_id("Order ID") -> string { base.order_id }
+- +        /** Customer identifier */
+- +        property customer_id("Customer ID") -> string { base.customer_id }
+- +        /** Order amount */
+- +        property amount("Amount") -> float { base.amount }
+- +        /** Order date */
+- +        property order_date("Order Date") -> date { base.order_date }
+- +        /** Customer segment */
+- +        property segment("Segment") -> string { base.segment }
+- +    }
+- +
+- +    /** Monthly revenue totals from repeat customers */
+- '-        generated from entity revenue_analytics.completed_orders'
+- +        generated from entity revenue_analytics.repeat_customer_orders
+- '-        /** */ @dimension property year("Year") -> int { base.yr }'
+- '-        /** */ @dimension property month("Month") -> int { base.mnth }'
+- '-        /** */ @metric property revenue("Revenue") -> float { sum(base.by_month.amount) }'
+- '-        /** */ @metric property order_count("Order Count") -> int { count(base.by_month.order_id) }'
+- +        /** Year */
+- +        @dimension
+- +        property year("Year") -> int { base.yr }
+- +        /** Month */
+- +        @dimension
+- +        property month("Month") -> int { base.mnth }
+- +        /** Total revenue */
+- +        @metric
+- +        property revenue("Revenue") -> float { sum(base.by_month.amount) }
+- +        /** Order count */
+- +        @metric
+- +        property order_count("Order Count") -> int { count(base.by_month.order_id) }
+- '-    /** Revenue by customer segment */'
+- '-    entity revenue_by_segment("Revenue By Segment") {'
+- '-        generated from entity revenue_analytics.completed_orders'
+- '-            group base.segment as by_seg'
+- '-        output'
+- '-'
+- '-        /** */ @dimension property segment("Segment") -> string { base.segment }'
+- '-        /** */ @metric property revenue("Revenue") -> float { sum(base.by_seg.amount) }'
+- '-        /** */ @metric property order_count("Order Count") -> int { count(base.by_seg.order_id) }'
+- '-    }'
+- '-'
+generated_sql:
+  monthly_revenue: "WITH \"completed_orders$intermediate\" AS (\n  SELECT\n    base.status = 'completed' AS \"$filter_cond\"\
+    ,\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n    base.amount\
+    \ AS amount,\n    base.order_date AS order_date,\n    base.status AS status\n  FROM orders AS base\n), completed_orders\
+    \ AS (\n  SELECT\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n\
+    \    base.amount AS amount,\n    base.order_date AS order_date,\n    to_customer.segment AS segment,\n    to_customer.region\
+    \ AS region\n  FROM \"completed_orders$intermediate\" AS base\n  LEFT JOIN customers AS to_customer\n    ON base.customer_id\
+    \ = to_customer.customer_id\n  WHERE\n    base.\"$filter_cond\"\n), customer_order_counts AS (\n  SELECT\n    base.customer_id\
+    \ AS customer_id,\n    COUNT(base.order_id) AS order_count\n  FROM completed_orders AS base\n  GROUP BY\n    base.customer_id\n\
+    ), orders_with_counts AS (\n  SELECT\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.amount\
+    \ AS amount,\n    base.order_date AS order_date,\n    base.segment AS segment\n  FROM completed_orders AS base\n), \"\
+    repeat_customer_orders$intermediate\" AS (\n  SELECT\n    to_order_count.order_count > 1 AS \"$filter_cond\",\n    base.order_id\
+    \ AS order_id,\n    base.customer_id AS customer_id,\n    base.amount AS amount,\n    base.order_date AS order_date,\n\
+    \    base.segment AS segment\n  FROM orders_with_counts AS base\n  LEFT JOIN customer_order_counts AS to_order_count\n\
+    \    ON base.customer_id = to_order_count.customer_id\n), repeat_customer_orders AS (\n  SELECT\n    base.order_id AS\
+    \ order_id,\n    base.customer_id AS customer_id,\n    base.amount AS amount,\n    base.order_date AS order_date,\n  \
+    \  base.segment AS segment\n  FROM \"repeat_customer_orders$intermediate\" AS base\n  WHERE\n    base.\"$filter_cond\"\
+    \n), \"monthly_revenue$intermediate\" AS (\n  SELECT\n    YEAR(base.order_date) AS yr,\n    MONTH(base.order_date) AS\
+    \ mnth,\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.amount AS amount,\n    base.order_date\
+    \ AS order_date,\n    base.segment AS segment\n  FROM repeat_customer_orders AS base\n)\nSELECT\n  base.yr AS year,\n\
+    \  base.mnth AS month,\n  SUM(base.amount) AS revenue,\n  COUNT(base.order_id) AS order_count\nFROM \"monthly_revenue$intermediate\"\
+    \ AS base\nGROUP BY\n  base.yr,\n  base.mnth"
+agent_results:
+- entity_id: monthly_revenue
+  columns:
+  - year
+  - month
+  - revenue
+  - order_count
+  row_count: 4
+  rows:
+  - year: 2025
+    month: 1
+    revenue: 14400.0
+    order_count: 6
+  - year: 2025
+    month: 2
+    revenue: 11550.0
+    order_count: 5
+  - year: 2025
+    month: 3
+    revenue: 16500.0
+    order_count: 7
+  - year: 2025
+    month: 4
+    revenue: 14200.0
+    order_count: 6
+agent_summary: 'monthly_revenue: 4 rows, SUM(year)=8,100.0, SUM(month)=10.0, SUM(revenue)=56,650.0, SUM(order_count)=24.0'
+status: PASS

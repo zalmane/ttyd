@@ -1,0 +1,66 @@
+id: arr_multi_sub
+question: ARR from customers with more than one active subscription
+policy: subscription_arr
+golden_answer: 15120.0
+elapsed_s: 11.8
+compiled: true
+rl_diff:
+- +
+- +    /** Per-customer subscription counts and MRR totals */
+- +    entity customer_sub_counts("Customer Subscription Counts") {
+- +        generated from entity subscription_arr.active_subs
+- +            group base.customer_id as by_cust
+- +        /** Customer identifier */
+- +        property customer_id("Customer ID") -> string { base.customer_id }
+- +        /** Number of active subscriptions */
+- +        property sub_count("Subscription Count") -> int { count(base.by_cust.subscription_id) }
+- +        /** Total MRR */
+- +        property total_mrr("Total MRR") -> float { sum(base.by_cust.mrr) }
+- +    }
+- +
+- +    /** ARR from customers with multiple active subscriptions */
+- +    entity arr_multi_sub_customers("ARR Multi-Sub Customers") {
+- +        generated from entity subscription_arr.customer_sub_counts filter base.sub_count > 1
+- +        output
+- +
+- +        /** Customer identifier */
+- +        @key
+- +        @dimension
+- +        property customer_id("Customer ID") -> string { base.customer_id }
+- +        /** Number of active subscriptions */
+- +        @measure
+- +        property sub_count("Subscription Count") -> int { base.sub_count }
+- +        /** Annual recurring revenue */
+- +        @metric
+- +        property arr("ARR") -> float { base.total_mrr * 12 }
+- +    }
+generated_sql:
+  arr_multi_sub_customers: "WITH \"active_subs$intermediate\" AS (\n  SELECT\n    (\n      base.status = 'active'\n    ) AS\
+    \ \"$filter_cond\",\n    base.subscription_id AS subscription_id,\n    base.customer_id AS customer_id,\n    base.product_id\
+    \ AS product_id,\n    base.mrr AS mrr,\n    base.start_date AS start_date,\n    base.end_date AS end_date,\n    base.status\
+    \ AS status\n  FROM subscriptions AS base\n), active_subs AS (\n  SELECT\n    base.subscription_id AS subscription_id,\n\
+    \    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n    base.mrr AS mrr,\n    base.start_date AS\
+    \ start_date,\n    base.end_date AS end_date,\n    to_customer.segment AS segment,\n    to_customer.region AS region\n\
+    \  FROM \"active_subs$intermediate\" AS base\n  LEFT JOIN customers AS to_customer\n    ON base.customer_id = to_customer.customer_id\n\
+    \  WHERE\n    base.\"$filter_cond\"\n), customer_sub_counts AS (\n  SELECT\n    base.customer_id AS customer_id,\n   \
+    \ COUNT(base.subscription_id) AS sub_count,\n    SUM(base.mrr) AS total_mrr\n  FROM active_subs AS base\n  GROUP BY\n\
+    \    base.customer_id\n), \"arr_multi_sub_customers$intermediate\" AS (\n  SELECT\n    base.sub_count > 1 AS \"$filter_cond\"\
+    ,\n    base.customer_id AS customer_id,\n    base.sub_count AS sub_count,\n    base.total_mrr AS total_mrr\n  FROM customer_sub_counts\
+    \ AS base\n)\nSELECT\n  base.customer_id AS customer_id,\n  base.sub_count AS sub_count,\n  base.total_mrr * 12 AS arr\n\
+    FROM \"arr_multi_sub_customers$intermediate\" AS base\nWHERE\n  base.\"$filter_cond\""
+agent_results:
+- entity_id: arr_multi_sub_customers
+  columns:
+  - customer_id
+  - sub_count
+  - arr
+  row_count: 2
+  rows:
+  - customer_id: CUST-01
+    sub_count: 2
+    arr: 7560.0
+  - customer_id: CUST-05
+    sub_count: 2
+    arr: 7560.0
+agent_summary: 'arr_multi_sub_customers: 2 rows, SUM(sub_count)=4.0, SUM(arr)=15,120.0'
+status: PASS

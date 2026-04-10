@@ -1,0 +1,21 @@
+id: customers_emea
+question: Customer summary for EMEA region only
+policy: customer_health
+golden_sql: SELECT c.name, c.segment, SUM(o.amount) as total_spend, COUNT(o.order_id)
+  as order_count FROM orders o JOIN customers c ON o.customer_id=c.customer_id WHERE
+  o.status='completed' AND c.region='EMEA' GROUP BY c.customer_id, c.name, c.segment
+  ORDER BY total_spend DESC
+result_type: table
+golden_answer:
+- name: Globex Inc
+  segment: Enterprise
+  total_spend: 8200.0
+  order_count: 3
+- name: Wayne Enterprises
+  segment: Enterprise
+  total_spend: 7900.0
+  order_count: 3
+- name: Aperture Science
+  segment: Mid-Market
+  total_spend: 5700.0
+  order_count: 2

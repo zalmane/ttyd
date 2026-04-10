@@ -1,0 +1,39 @@
+id: avg_mrr
+question: What is the average MRR per active subscription?
+policy: subscription_arr
+golden_answer: 327.0
+elapsed_s: 9.6
+compiled: true
+rl_diff:
+- +
+- +    /** Average MRR across all active subscriptions */
+- +    entity avg_mrr_per_subscription("Average MRR Per Subscription") {
+- +        generated from entity subscription_arr.active_subs
+- +            group (1) as one as all_subs
+- +        output
+- +
+- +        /** Average monthly recurring revenue per subscription */ @metric property avg_mrr("Average MRR") -> float { avg(base.all_subs.mrr)
+  }
+- +    }
+generated_sql:
+  avg_mrr_per_subscription: "WITH \"active_subs$intermediate\" AS (\n  SELECT\n    (\n      base.status = 'active'\n    )\
+    \ AS \"$filter_cond\",\n    base.subscription_id AS subscription_id,\n    base.customer_id AS customer_id,\n    base.product_id\
+    \ AS product_id,\n    base.mrr AS mrr,\n    base.start_date AS start_date,\n    base.end_date AS end_date,\n    base.status\
+    \ AS status\n  FROM subscriptions AS base\n), active_subs AS (\n  SELECT\n    base.subscription_id AS subscription_id,\n\
+    \    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n    base.mrr AS mrr,\n    base.start_date AS\
+    \ start_date,\n    base.end_date AS end_date,\n    to_customer.segment AS segment,\n    to_customer.region AS region\n\
+    \  FROM \"active_subs$intermediate\" AS base\n  LEFT JOIN customers AS to_customer\n    ON base.customer_id = to_customer.customer_id\n\
+    \  WHERE\n    base.\"$filter_cond\"\n), \"avg_mrr_per_subscription$intermediate\" AS (\n  SELECT\n    1 AS one,\n    base.subscription_id\
+    \ AS subscription_id,\n    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n    base.mrr AS mrr,\n\
+    \    base.start_date AS start_date,\n    base.end_date AS end_date,\n    base.segment AS segment,\n    base.region AS\
+    \ region\n  FROM active_subs AS base\n)\nSELECT\n  AVG(base.mrr) AS avg_mrr\nFROM \"avg_mrr_per_subscription$intermediate\"\
+    \ AS base\nGROUP BY\n  base.one"
+agent_results:
+- entity_id: avg_mrr_per_subscription
+  columns:
+  - avg_mrr
+  row_count: 1
+  rows:
+  - avg_mrr: 327.0
+agent_summary: 'avg_mrr_per_subscription: 327.0'
+status: PASS

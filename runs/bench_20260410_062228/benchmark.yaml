@@ -1,0 +1,182 @@
+timestamp: '20260410_062228'
+test_count: 25
+modes:
+- crl
+total_rl_s: 0
+total_crl_s: 7.7
+tests:
+- id: arr_total
+  crl:
+    status: ERROR
+    elapsed_s: 0.5
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: arr_excl_apac
+  crl:
+    status: ERROR
+    elapsed_s: 0.2
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: arr_multi_sub
+  crl:
+    status: ERROR
+    elapsed_s: 0.6
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: avg_mrr
+  crl:
+    status: ERROR
+    elapsed_s: 0.6
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: arr_excl_pre2025
+  crl:
+    status: ERROR
+    elapsed_s: 0.6
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: arr_expiring_2025
+  crl:
+    status: ERROR
+    elapsed_s: 0.5
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: arr_pct_enterprise
+  crl:
+    status: ERROR
+    elapsed_s: 0.2
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: arr_midmarket_us
+  crl:
+    status: ERROR
+    elapsed_s: 0.3
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: rev_jan_feb
+  crl:
+    status: ERROR
+    elapsed_s: 0.3
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: rev_excl_below_500
+  crl:
+    status: ERROR
+    elapsed_s: 0.3
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: avg_order_by_segment
+  crl:
+    status: ERROR
+    elapsed_s: 0.3
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: rev_repeat_customers
+  crl:
+    status: ERROR
+    elapsed_s: 0.3
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: max_order
+  crl:
+    status: ERROR
+    elapsed_s: 0.3
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: rev_by_region
+  crl:
+    status: ERROR
+    elapsed_s: 0.2
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: rev_march_vs_jan
+  crl:
+    status: ERROR
+    elapsed_s: 0.2
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: unique_customers_march
+  crl:
+    status: ERROR
+    elapsed_s: 0.2
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: top3_by_spend
+  crl:
+    status: ERROR
+    elapsed_s: 0.2
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: customers_above_5k
+  crl:
+    status: ERROR
+    elapsed_s: 0.2
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: customers_emea
+  crl:
+    status: ERROR
+    elapsed_s: 0.3
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: most_orders_customer
+  crl:
+    status: ERROR
+    elapsed_s: 0.2
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: avg_spend_per_customer
+  crl:
+    status: ERROR
+    elapsed_s: 0.3
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: transactional_total
+  crl:
+    status: ERROR
+    elapsed_s: 0.2
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: count_by_size_tier
+  crl:
+    status: ERROR
+    elapsed_s: 0.3
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: avg_enterprise_standard
+  crl:
+    status: ERROR
+    elapsed_s: 0.2
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl
+- id: large_deals_march
+  crl:
+    status: ERROR
+    elapsed_s: 0.2
+    error: 'HTTP 500: {"detail":"AI service is temporarily unavailable. Please try
+      again in a moment."}'
+    mode: crl

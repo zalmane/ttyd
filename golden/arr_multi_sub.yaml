@@ -1,0 +1,8 @@
+id: arr_multi_sub
+question: ARR from customers with more than one active subscription
+policy: subscription_arr
+golden_sql: SELECT SUM(sub.arr) as arr FROM (SELECT s.customer_id, SUM(s.mrr)*12 as
+  arr, COUNT(*) as cnt FROM subscriptions s WHERE s.status='active' GROUP BY s.customer_id
+  HAVING COUNT(*) > 1) sub
+result_type: scalar
+golden_answer: 15120.0

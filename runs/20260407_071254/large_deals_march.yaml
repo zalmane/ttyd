@@ -1,0 +1,70 @@
+id: large_deals_march
+question: Large deals in March 2025
+policy: order_classification
+golden_answer:
+- order_id: ORD-016
+  customer: Acme Corp
+  amount: 4500.0
+- order_id: ORD-019
+  customer: Umbrella Ltd
+  amount: 4500.0
+- order_id: ORD-015
+  customer: Massive Dynamic
+  amount: 4500.0
+elapsed_s: 23.2
+compiled: true
+rl_diff:
+- '-        generated from entity order_classification.orders filter (base.status == "completed")'
+- +        generated from entity order_classification.orders filter (base.status == "completed") and (base.amount >= 4000.0)
+  and (base.order_date >= date_from_parts(2025, 3, 1)) and (base.order_date <= date_from_parts(2025, 3, 31))
+generated_sql:
+  classified_orders: "WITH \"classified_orders$intermediate\" AS (\n  SELECT\n    (\n      base.status = 'completed'\n   \
+    \ )\n    AND (\n      base.amount >= 4000.0\n    )\n    AND (\n      base.order_date >= MAKE_DATE(2025, 3, 1)\n    )\n\
+    \    AND (\n      base.order_date <= MAKE_DATE(2025, 3, 31)\n    ) AS \"$filter_cond\",\n    base.order_id AS order_id,\n\
+    \    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n    base.amount AS amount,\n    base.order_date\
+    \ AS order_date,\n    base.status AS status\n  FROM orders AS base\n)\nSELECT\n  base.order_id AS order_id,\n  base.customer_id\
+    \ AS customer_id,\n  base.amount AS amount,\n  base.order_date AS order_date,\n  to_customer.segment AS segment,\n  to_customer.region\
+    \ AS region,\n  CASE\n    WHEN base.amount >= 4000.0\n    THEN 'Large'\n    WHEN base.amount >= 1000.0\n    THEN 'Medium'\n\
+    \    ELSE 'Small'\n  END AS size_tier,\n  CASE\n    WHEN to_customer.segment = 'Enterprise' AND base.amount >= 4000.0\n\
+    \    THEN 'Strategic'\n    WHEN to_customer.segment = 'Enterprise'\n    THEN 'Enterprise Standard'\n    WHEN base.amount\
+    \ >= 2000.0\n    THEN 'Growth'\n    ELSE 'Transactional'\n  END AS deal_type\nFROM \"classified_orders$intermediate\"\
+    \ AS base\nLEFT JOIN customers AS to_customer\n  ON base.customer_id = to_customer.customer_id\nWHERE\n  base.\"$filter_cond\""
+agent_results:
+- entity_id: classified_orders
+  columns:
+  - order_id
+  - customer_id
+  - amount
+  - order_date
+  - segment
+  - region
+  - size_tier
+  - deal_type
+  row_count: 3
+  rows:
+  - order_id: ORD-016
+    customer_id: CUST-01
+    amount: 4500.0
+    order_date: 2025-03-05
+    segment: Enterprise
+    region: US
+    size_tier: Large
+    deal_type: Strategic
+  - order_id: ORD-019
+    customer_id: CUST-04
+    amount: 4500.0
+    order_date: 2025-03-15
+    segment: Mid-Market
+    region: APAC
+    size_tier: Large
+    deal_type: Growth
+  - order_id: ORD-015
+    customer_id: CUST-10
+    amount: 4500.0
+    order_date: 2025-03-01
+    segment: Enterprise
+    region: US
+    size_tier: Large
+    deal_type: Strategic
+agent_summary: 'classified_orders: 3 rows, SUM(amount)=13,500.0'
+status: PASS

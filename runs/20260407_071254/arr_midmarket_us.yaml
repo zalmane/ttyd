@@ -1,0 +1,45 @@
+id: arr_midmarket_us
+question: ARR from Mid-Market customers in US
+policy: subscription_arr
+golden_answer: 2040.0
+elapsed_s: 10.7
+compiled: true
+rl_diff:
+- +
+- +    /** ARR from Mid-Market customers in US region */
+- +    entity arr_midmarket_us("ARR Mid-Market US") {
+- +        generated from entity subscription_arr.active_subs
+- +            filter base.segment == "Mid-Market" and base.region == "US"
+- +            group (1) as one as all_rows
+- +        output
+- +
+- +        /** Total ARR for Mid-Market US customers */
+- +        @metric property arr("ARR") -> float { sum(base.all_rows.mrr) * 12 }
+- +        /** Number of subscriptions */
+- +        @metric property sub_count("Subscription Count") -> int { count(base.all_rows.subscription_id) }
+- +    }
+generated_sql:
+  arr_midmarket_us: "WITH \"active_subs$intermediate\" AS (\n  SELECT\n    (\n      base.status = 'active'\n    ) AS \"$filter_cond\"\
+    ,\n    base.subscription_id AS subscription_id,\n    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n\
+    \    base.mrr AS mrr,\n    base.start_date AS start_date,\n    base.end_date AS end_date,\n    base.status AS status\n\
+    \  FROM subscriptions AS base\n), active_subs AS (\n  SELECT\n    base.subscription_id AS subscription_id,\n    base.customer_id\
+    \ AS customer_id,\n    base.product_id AS product_id,\n    base.mrr AS mrr,\n    base.start_date AS start_date,\n    base.end_date\
+    \ AS end_date,\n    to_customer.segment AS segment,\n    to_customer.region AS region\n  FROM \"active_subs$intermediate\"\
+    \ AS base\n  LEFT JOIN customers AS to_customer\n    ON base.customer_id = to_customer.customer_id\n  WHERE\n    base.\"\
+    $filter_cond\"\n), \"arr_midmarket_us$intermediate\" AS (\n  SELECT\n    base.segment = 'Mid-Market' AND base.region =\
+    \ 'US' AS \"$filter_cond\",\n    1 AS one,\n    base.subscription_id AS subscription_id,\n    base.customer_id AS customer_id,\n\
+    \    base.product_id AS product_id,\n    base.mrr AS mrr,\n    base.start_date AS start_date,\n    base.end_date AS end_date,\n\
+    \    base.segment AS segment,\n    base.region AS region\n  FROM active_subs AS base\n)\nSELECT\n  SUM(base.mrr) * 12\
+    \ AS arr,\n  COUNT(base.subscription_id) AS sub_count\nFROM \"arr_midmarket_us$intermediate\" AS base\nWHERE\n  base.\"\
+    $filter_cond\"\nGROUP BY\n  base.one"
+agent_results:
+- entity_id: arr_midmarket_us
+  columns:
+  - arr
+  - sub_count
+  row_count: 1
+  rows:
+  - arr: 2040.0
+    sub_count: 1
+agent_summary: 'arr_midmarket_us: [2,040.0, 1]'
+status: PASS

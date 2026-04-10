@@ -1,0 +1,8 @@
+id: arr_pct_enterprise
+question: What percentage of total ARR comes from Enterprise?
+policy: subscription_arr
+golden_sql: SELECT ROUND(100.0 * SUM(CASE WHEN c.segment='Enterprise' THEN s.mrr ELSE
+  0 END) / SUM(s.mrr), 1) as pct FROM subscriptions s JOIN customers c ON s.customer_id=c.customer_id
+  WHERE s.status='active'
+result_type: scalar
+golden_answer: 84.4

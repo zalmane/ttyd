@@ -1,0 +1,14 @@
+id: avg_order_by_segment
+question: Average order value by segment
+policy: revenue_analytics
+golden_sql: SELECT c.segment, ROUND(AVG(o.amount), 1) as avg_order FROM orders o JOIN
+  customers c ON o.customer_id=c.customer_id WHERE o.status='completed' GROUP BY c.segment
+  ORDER BY c.segment
+result_type: table
+golden_answer:
+- segment: Enterprise
+  avg_order: 2568.8
+- segment: Mid-Market
+  avg_order: 2692.9
+- segment: SMB
+  avg_order: 666.7

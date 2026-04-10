@@ -1,0 +1,43 @@
+id: arr_total
+question: What is our total ARR?
+policy: subscription_arr
+golden_answer: 39240.0
+elapsed_s: 10.2
+compiled: true
+rl_diff:
+- +
+- +    /** Total ARR across all active subscriptions */
+- +    entity total_arr("Total ARR") {
+- +        generated from entity subscription_arr.active_subs
+- +            group (1) as one as all_rows
+- +        output
+- +
+- +        /** Total annual recurring revenue */ @metric property total_arr("Total ARR") -> float { sum(base.all_rows.mrr)
+  * 12 }
+- +        /** Total active subscription count */ @metric property total_subs("Total Subscriptions") -> int { count(base.all_rows.subscription_id)
+  }
+- +    }
+generated_sql:
+  total_arr: "WITH \"active_subs$intermediate\" AS (\n  SELECT\n    (\n      base.status = 'active'\n    ) AS \"$filter_cond\"\
+    ,\n    base.subscription_id AS subscription_id,\n    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n\
+    \    base.mrr AS mrr,\n    base.start_date AS start_date,\n    base.end_date AS end_date,\n    base.status AS status\n\
+    \  FROM subscriptions AS base\n), active_subs AS (\n  SELECT\n    base.subscription_id AS subscription_id,\n    base.customer_id\
+    \ AS customer_id,\n    base.product_id AS product_id,\n    base.mrr AS mrr,\n    base.start_date AS start_date,\n    base.end_date\
+    \ AS end_date,\n    to_customer.segment AS segment,\n    to_customer.region AS region\n  FROM \"active_subs$intermediate\"\
+    \ AS base\n  LEFT JOIN customers AS to_customer\n    ON base.customer_id = to_customer.customer_id\n  WHERE\n    base.\"\
+    $filter_cond\"\n), \"total_arr$intermediate\" AS (\n  SELECT\n    1 AS one,\n    base.subscription_id AS subscription_id,\n\
+    \    base.customer_id AS customer_id,\n    base.product_id AS product_id,\n    base.mrr AS mrr,\n    base.start_date AS\
+    \ start_date,\n    base.end_date AS end_date,\n    base.segment AS segment,\n    base.region AS region\n  FROM active_subs\
+    \ AS base\n)\nSELECT\n  SUM(base.mrr) * 12 AS total_arr,\n  COUNT(base.subscription_id) AS total_subs\nFROM \"total_arr$intermediate\"\
+    \ AS base\nGROUP BY\n  base.one"
+agent_results:
+- entity_id: total_arr
+  columns:
+  - total_arr
+  - total_subs
+  row_count: 1
+  rows:
+  - total_arr: 39240.0
+    total_subs: 10
+agent_summary: 'total_arr: [39,240.0, 10]'
+status: PASS

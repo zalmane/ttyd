@@ -1,0 +1,7 @@
+id: arr_excl_pre2025
+question: ARR excluding subscriptions that started before 2025
+policy: subscription_arr
+golden_sql: SELECT SUM(s.mrr)*12 as arr FROM subscriptions s WHERE s.status='active'
+  AND s.start_date >= '2025-01-01'
+result_type: scalar
+golden_answer: 11640.0

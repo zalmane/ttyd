@@ -1,0 +1,129 @@
+id: avg_spend_per_customer
+question: Average spend per customer
+policy: customer_health
+golden_answer:
+- name: Acme Corp
+  total_spend: 13000.0
+- name: Initech
+  total_spend: 8650.0
+- name: Globex Inc
+  total_spend: 8200.0
+- name: Wayne Enterprises
+  total_spend: 7900.0
+- name: Stark Industries
+  total_spend: 6600.0
+- name: Aperture Science
+  total_spend: 5700.0
+- name: Massive Dynamic
+  total_spend: 5400.0
+- name: Umbrella Ltd
+  total_spend: 4500.0
+- name: Cyberdyne Systems
+  total_spend: 1200.0
+- name: Soylent Corp
+  total_spend: 800.0
+elapsed_s: 6.3
+compiled: true
+rl_diff:
+- +        /** Average spend per order for this customer */
+- +        @metric
+- +        property average_spend("Average Spend") -> float { self.total_spend / to<float>(self.order_count) }
+generated_sql:
+  customer_summary: "WITH \"completed_orders$intermediate\" AS (\n  SELECT\n    (\n      base.status = 'completed'\n    )\
+    \ AS \"$filter_cond\",\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.amount AS amount,\n\
+    \    base.order_date AS order_date,\n    base.status AS status\n  FROM orders AS base\n), completed_orders AS (\n  SELECT\n\
+    \    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.amount AS amount,\n    base.order_date\
+    \ AS order_date,\n    to_customer.name AS name,\n    to_customer.segment AS segment,\n    to_customer.region AS region\n\
+    \  FROM \"completed_orders$intermediate\" AS base\n  LEFT JOIN customers AS to_customer\n    ON base.customer_id = to_customer.customer_id\n\
+    \  WHERE\n    base.\"$filter_cond\"\n), \"customer_summary$prop_layer0\" AS (\n  SELECT\n    base.customer_id AS customer_id,\n\
+    \    base.name AS name,\n    base.segment AS segment,\n    base.region AS region,\n    SUM(base.amount) AS total_spend,\n\
+    \    COUNT(base.order_id) AS order_count,\n    base.customer_id AS \"$src$customer_id\",\n    base.name AS \"$src$name\"\
+    ,\n    base.region AS \"$src$region\",\n    base.segment AS \"$src$segment\"\n  FROM completed_orders AS base\n  GROUP\
+    \ BY\n    base.customer_id,\n    base.name,\n    base.segment,\n    base.region\n)\nSELECT\n  base.customer_id AS customer_id,\n\
+    \  base.name AS name,\n  base.segment AS segment,\n  base.region AS region,\n  base.total_spend AS total_spend,\n  base.order_count\
+    \ AS order_count,\n  base.total_spend / CAST(base.order_count AS REAL) AS average_spend\nFROM \"customer_summary$prop_layer0\"\
+    \ AS base"
+agent_results:
+- entity_id: customer_summary
+  columns:
+  - customer_id
+  - name
+  - segment
+  - region
+  - total_spend
+  - order_count
+  - average_spend
+  row_count: 10
+  rows:
+  - customer_id: CUST-08
+    name: Soylent Corp
+    segment: SMB
+    region: APAC
+    total_spend: 800.0
+    order_count: 1
+    average_spend: 800.0
+  - customer_id: CUST-10
+    name: Massive Dynamic
+    segment: Enterprise
+    region: US
+    total_spend: 5400.0
+    order_count: 2
+    average_spend: 2700.0
+  - customer_id: CUST-02
+    name: Globex Inc
+    segment: Enterprise
+    region: EMEA
+    total_spend: 8200.0
+    order_count: 3
+    average_spend: 2733.3333333333335
+  - customer_id: CUST-03
+    name: Initech
+    segment: Mid-Market
+    region: US
+    total_spend: 8650.0
+    order_count: 4
+    average_spend: 2162.5
+  - customer_id: CUST-09
+    name: Aperture Science
+    segment: Mid-Market
+    region: EMEA
+    total_spend: 5700.0
+    order_count: 2
+    average_spend: 2850.0
+  - customer_id: CUST-06
+    name: Wayne Enterprises
+    segment: Enterprise
+    region: EMEA
+    total_spend: 7900.0
+    order_count: 3
+    average_spend: 2633.3333333333335
+  - customer_id: CUST-04
+    name: Umbrella Ltd
+    segment: Mid-Market
+    region: APAC
+    total_spend: 4500.0
+    order_count: 1
+    average_spend: 4500.0
+  - customer_id: CUST-05
+    name: Stark Industries
+    segment: Enterprise
+    region: US
+    total_spend: 6600.0
+    order_count: 3
+    average_spend: 2200.0
+  - customer_id: CUST-01
+    name: Acme Corp
+    segment: Enterprise
+    region: US
+    total_spend: 13000.0
+    order_count: 5
+    average_spend: 2600.0
+  - customer_id: CUST-07
+    name: Cyberdyne Systems
+    segment: SMB
+    region: US
+    total_spend: 1200.0
+    order_count: 2
+    average_spend: 600.0
+agent_summary: 'customer_summary: 10 rows, SUM(total_spend)=61,950.0, SUM(order_count)=26.0, SUM(average_spend)=23,779.2'
+status: PASS

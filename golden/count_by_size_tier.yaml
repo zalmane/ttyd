@@ -1,0 +1,14 @@
+id: count_by_size_tier
+question: Count of deals by size tier
+policy: order_classification
+golden_sql: SELECT CASE WHEN o.amount >= 4000 THEN 'Large' WHEN o.amount >= 1000 THEN
+  'Medium' ELSE 'Small' END as size_tier, COUNT(*) as deal_count FROM orders o WHERE
+  o.status='completed' GROUP BY size_tier ORDER BY size_tier
+result_type: table
+golden_answer:
+- size_tier: Large
+  deal_count: 9
+- size_tier: Medium
+  deal_count: 8
+- size_tier: Small
+  deal_count: 9

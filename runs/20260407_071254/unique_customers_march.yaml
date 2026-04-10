@@ -1,0 +1,50 @@
+id: unique_customers_march
+question: How many unique customers placed orders in March?
+policy: revenue_analytics
+golden_answer: 8
+elapsed_s: 9.8
+compiled: true
+rl_diff:
+- +
+- +    /** March orders filtered by month */
+- +    entity march_orders("March Orders") {
+- +        generated from entity revenue_analytics.completed_orders
+- +            filter month(base.order_date) == 3
+- +        /** Customer identifier */
+- +        property customer_id("Customer ID") -> string { base.customer_id }
+- +    }
+- +
+- +    /** Unique customer count for March */
+- +    entity march_customer_count("March Customer Count") {
+- +        generated from entity revenue_analytics.march_orders
+- +            group (1) as one as all_rows
+- +        output
+- +
+- +        /** Total unique customers in March */
+- +        @metric
+- +        property unique_customers("Unique Customers") -> int { count_distinct(base.all_rows.customer_id) }
+- +    }
+generated_sql:
+  march_customer_count: "WITH \"completed_orders$intermediate\" AS (\n  SELECT\n    (\n      base.status = 'completed'\n \
+    \   ) AS \"$filter_cond\",\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n    base.product_id\
+    \ AS product_id,\n    base.amount AS amount,\n    base.order_date AS order_date,\n    base.status AS status\n  FROM orders\
+    \ AS base\n), completed_orders AS (\n  SELECT\n    base.order_id AS order_id,\n    base.customer_id AS customer_id,\n\
+    \    base.product_id AS product_id,\n    base.amount AS amount,\n    base.order_date AS order_date,\n    to_customer.segment\
+    \ AS segment,\n    to_customer.region AS region\n  FROM \"completed_orders$intermediate\" AS base\n  LEFT JOIN customers\
+    \ AS to_customer\n    ON base.customer_id = to_customer.customer_id\n  WHERE\n    base.\"$filter_cond\"\n), \"march_orders$intermediate\"\
+    \ AS (\n  SELECT\n    MONTH(base.order_date) = 3 AS \"$filter_cond\",\n    base.order_id AS order_id,\n    base.customer_id\
+    \ AS customer_id,\n    base.product_id AS product_id,\n    base.amount AS amount,\n    base.order_date AS order_date,\n\
+    \    base.segment AS segment,\n    base.region AS region\n  FROM completed_orders AS base\n), march_orders AS (\n  SELECT\n\
+    \    base.customer_id AS customer_id\n  FROM \"march_orders$intermediate\" AS base\n  WHERE\n    base.\"$filter_cond\"\
+    \n), \"march_customer_count$intermediate\" AS (\n  SELECT\n    1 AS one,\n    base.customer_id AS customer_id\n  FROM\
+    \ march_orders AS base\n)\nSELECT\n  COUNT(base.customer_id) AS unique_customers\nFROM \"march_customer_count$intermediate\"\
+    \ AS base\nGROUP BY\n  base.one"
+agent_results:
+- entity_id: march_customer_count
+  columns:
+  - unique_customers
+  row_count: 1
+  rows:
+  - unique_customers: 8
+agent_summary: 'march_customer_count: 8'
+status: PASS

@@ -1,0 +1,8 @@
+id: rev_repeat_customers
+question: Revenue from repeat customers only
+policy: revenue_analytics
+golden_sql: SELECT SUM(sub.rev) as revenue FROM (SELECT o.customer_id, SUM(o.amount)
+  as rev, COUNT(*) as cnt FROM orders o WHERE o.status='completed' GROUP BY o.customer_id
+  HAVING COUNT(*) > 1) sub
+result_type: scalar
+golden_answer: 56650.0
