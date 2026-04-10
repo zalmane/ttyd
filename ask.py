@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+import duckdb
 from setup_db import create_db
 from compact_rl import (
     riverlang_to_compact, compact_to_modelset, split_crl, merge_crl,
@@ -134,7 +135,7 @@ CONCEPT_CATALOG_TEXT, CONCEPT_CATALOG = _build_concept_catalog()
 PLANNER_PROMPT = """You are a query planner. Given a business question and a catalog of existing data concepts, decide how to answer it.
 
 Available tables: orders (30 rows), customers (10), subscriptions (13), products (5)
-Period: Jan-Apr 2025
+Period: Jul 2024 - Apr 2025
 
 Existing concepts:
 {catalog}
@@ -149,8 +150,8 @@ Output a JSON plan:
 }}
 
 Valid policy names: subscription_arr, revenue_analytics, customer_health, order_classification
-- "reuse": an existing [output] entity answers this EXACTLY as-is. Set policy and entities.
-- "patch": policy has the right base data but needs a new/modified entity. Set policy.
+- "reuse": an existing [output] entity answers this EXACTLY as-is with NO filtering needed. The result rows ARE the answer. Example: "ARR by segment" -> reuse arr_by_segment.
+- "patch": the question needs filtering, a different grouping, a new calculation, or combines existing concepts in a new way. Example: "revenue in April" -> patch monthly_revenue (needs filter). "Total ARR" -> patch arr_by_segment (needs aggregation).
 - "fresh": nothing relevant. Set policy to null.
 
 Output ONLY valid JSON."""
@@ -417,7 +418,7 @@ def print_welcome():
 
     print(f"\n{BOLD}  Data:{RESET}")
     print(f"    {CYAN}orders{RESET} (30)  {CYAN}customers{RESET} (10)  {CYAN}subscriptions{RESET} (13)  {CYAN}products{RESET} (5)")
-    print(f"    {DIM}Period: Jan-Apr 2025 | Segments: Enterprise, Mid-Market, SMB | Regions: US, EMEA, APAC{RESET}")
+    print(f"    {DIM}Period: Jul 2024 - Apr 2025 | Segments: Enterprise, Mid-Market, SMB | Regions: US, EMEA, APAC{RESET}")
 
     print(f"\n{BOLD}  Glossary (pre-built concepts — instant reuse):{RESET}")
     for c in CONCEPT_CATALOG:
@@ -609,7 +610,10 @@ def main():
     parser.add_argument("question", nargs="?", help="Question (interactive if omitted)")
     args = parser.parse_args()
 
-    con = create_db(":memory:")
+    db_path = Path(__file__).parent / "demo.db"
+    if not db_path.exists():
+        create_db(db_path)
+    con = duckdb.connect(str(db_path), read_only=True)
 
     if args.question:
         ask(args.question, con)

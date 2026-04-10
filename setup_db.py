@@ -1,7 +1,7 @@
 """Create a DuckDB with SaaS demo data for talk-to-your-data experiments.
 
 Tables: orders, customers, subscriptions, products
-Data: ~100 rows per table, deterministic (seeded), Jan-Apr 2025, 10 customers, 5 products.
+Data: deterministic, Q3 2024 - Apr 2025, 10 customers, 5 products.
 
 Usage:
     python setup_db.py           # creates demo.db in current dir
@@ -40,6 +40,36 @@ CUSTOMERS = [
 
 # fmt: off
 ORDERS = [
+    # Jul 2024
+    ("ORD-100", "CUST-01", "PROD-01", 4200.00, "2024-07-10", "completed"),
+    ("ORD-101", "CUST-02", "PROD-02", 1100.00, "2024-07-15", "completed"),
+    ("ORD-102", "CUST-05", "PROD-01", 4200.00, "2024-07-22", "completed"),
+    # Aug 2024
+    ("ORD-103", "CUST-03", "PROD-02", 1000.00, "2024-08-05", "completed"),
+    ("ORD-104", "CUST-06", "PROD-01", 4200.00, "2024-08-12", "completed"),
+    ("ORD-105", "CUST-01", "PROD-03", 800.00,  "2024-08-20", "completed"),
+    ("ORD-106", "CUST-07", "PROD-04", 350.00,  "2024-08-25", "completed"),
+    # Sep 2024
+    ("ORD-107", "CUST-04", "PROD-02", 1000.00, "2024-09-03", "completed"),
+    ("ORD-108", "CUST-02", "PROD-05", 2500.00, "2024-09-10", "completed"),
+    ("ORD-109", "CUST-05", "PROD-03", 800.00,  "2024-09-18", "completed"),
+    ("ORD-110", "CUST-09", "PROD-02", 1000.00, "2024-09-25", "completed"),
+    # Oct 2024
+    ("ORD-111", "CUST-01", "PROD-05", 2500.00, "2024-10-02", "completed"),
+    ("ORD-112", "CUST-10", "PROD-01", 4200.00, "2024-10-08", "completed"),
+    ("ORD-113", "CUST-03", "PROD-03", 400.00,  "2024-10-15", "completed"),
+    ("ORD-114", "CUST-06", "PROD-04", 500.00,  "2024-10-22", "cancelled"),
+    # Nov 2024
+    ("ORD-115", "CUST-08", "PROD-02", 700.00,  "2024-11-05", "completed"),
+    ("ORD-116", "CUST-02", "PROD-01", 4200.00, "2024-11-12", "completed"),
+    ("ORD-117", "CUST-05", "PROD-04", 500.00,  "2024-11-18", "completed"),
+    ("ORD-118", "CUST-01", "PROD-01", 4200.00, "2024-11-25", "completed"),
+    # Dec 2024
+    ("ORD-119", "CUST-04", "PROD-01", 4200.00, "2024-12-03", "completed"),
+    ("ORD-120", "CUST-06", "PROD-05", 2500.00, "2024-12-10", "completed"),
+    ("ORD-121", "CUST-03", "PROD-01", 4200.00, "2024-12-15", "completed"),
+    ("ORD-122", "CUST-09", "PROD-03", 400.00,  "2024-12-20", "completed"),
+    ("ORD-123", "CUST-10", "PROD-04", 500.00,  "2024-12-28", "pending"),
     # Jan 2025
     ("ORD-001", "CUST-01", "PROD-01", 4500.00, "2025-01-05", "completed"),
     ("ORD-002", "CUST-02", "PROD-01", 4500.00, "2025-01-08", "completed"),
@@ -88,11 +118,16 @@ SUBSCRIPTIONS = [
     ("SUB-008", "CUST-10", "PROD-01", 500.00,  "2025-01-15", "2026-01-14", "active"),
     ("SUB-009", "CUST-09", "PROD-02", 170.00,  "2025-02-01", "2026-01-31", "active"),
     ("SUB-010", "CUST-05", "PROD-03", 130.00,  "2025-03-01", "2026-02-28", "active"),
-    # Churned
+    # Churned 2024
     ("SUB-011", "CUST-07", "PROD-02", 170.00,  "2024-03-01", "2024-12-31", "churned"),
     ("SUB-012", "CUST-08", "PROD-02", 170.00,  "2024-05-01", "2025-01-31", "churned"),
-    # Trial
+    # Expired 2024
+    ("SUB-014", "CUST-04", "PROD-04", 99.00,   "2024-04-01", "2024-09-30", "expired"),
+    ("SUB-015", "CUST-08", "PROD-04", 99.00,   "2024-06-01", "2024-11-30", "expired"),
+    # Trials — these have MRR but should NOT count toward ARR
     ("SUB-013", "CUST-07", "PROD-01", 0.00,    "2025-03-01", "2025-03-31", "trial"),
+    ("SUB-016", "CUST-08", "PROD-01", 500.00,  "2025-04-01", "2025-04-30", "trial"),
+    ("SUB-017", "CUST-07", "PROD-02", 170.00,  "2025-03-15", "2025-04-14", "trial"),
 ]
 # fmt: on
 

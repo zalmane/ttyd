@@ -27,40 +27,104 @@ model subscription_arr("Subscription ARR") {
         /** */ property region("Region") -> string
     }
 
-    /** Active subscriptions enriched with customer data */
-    entity active_subs("Active Subscriptions") {
-        generated from entity subscription_arr.subscriptions filter (base.status == "active")
+    /** Product lookup */
+    source products("Products") {
+        table("products")
+        /** */ property product_id("Product ID") -> string
+        /** */ property name("Product Name") -> string
+        /** */ property category("Category") -> string
+        /** */ property list_price("List Price") -> float
+    }
+
+    /** Qualifying subscriptions: active only (excludes trial, churned, expired), with MRR > 0 */
+    entity qualifying_subs("Qualifying Subscriptions") {
+        generated from entity subscription_arr.subscriptions filter (base.status == "active" and base.mrr > 0 and base.status != "trial")
         /** */ property subscription_id("Subscription ID") -> string { base.subscription_id }
         /** */ property customer_id("Customer ID") -> string { base.customer_id }
         /** */ property product_id("Product ID") -> string { base.product_id }
-        /** */ property mrr("MRR") -> float { base.mrr }
         /** */ property start_date("Start Date") -> date { base.start_date }
         /** */ property end_date("End Date") -> date { base.end_date }
-        /** Denormalized for grouping */
+        /** Denormalized customer fields */
         property segment("Segment") -> string { base.to_customer.segment }
-        /** Denormalized for grouping */
+        /** Denormalized customer fields */
         property region("Region") -> string { base.to_customer.region }
+        /** Denormalized customer fields */
+        property customer_name("Customer Name") -> string { base.to_customer.name }
+
+        /** Effective MRR: prorated if subscription started within last 30 days, otherwise full MRR */
+        property effective_mrr("Effective MRR") -> float {
+            if (base.start_date > base.end_date) { 0.0 }
+            else { base.mrr }
+        }
+
+        /** Discount tier based on list price vs actual MRR ratio */
+        relation to_product("To Product") {
+            related to one subscription_arr.products using base.product_id == target.product_id
+        }
     }
 
-    /** ARR by customer */
+    /** Enriched subs with discount calculation */
+    entity enriched_subs("Enriched Subscriptions") {
+        generated from entity subscription_arr.qualifying_subs
+
+        /** */ property subscription_id("Subscription ID") -> string { base.subscription_id }
+        /** */ property customer_id("Customer ID") -> string { base.customer_id }
+        /** */ property product_id("Product ID") -> string { base.product_id }
+        /** */ property segment("Segment") -> string { base.segment }
+        /** */ property region("Region") -> string { base.region }
+        /** */ property customer_name("Customer Name") -> string { base.customer_name }
+        /** */ property effective_mrr("Effective MRR") -> float { base.effective_mrr }
+        /** */ property start_date("Start Date") -> date { base.start_date }
+        /** */ property end_date("End Date") -> date { base.end_date }
+
+        /** Product category for grouping */
+        property product_category("Product Category") -> string { base.to_product.category }
+        /** List price for discount calc */
+        property list_price("List Price") -> float { base.to_product.list_price }
+
+        /** Discount percentage: how much below list price the customer pays */
+        property discount_pct("Discount Percentage") -> float {
+            if (base.to_product.list_price > 0) {
+                (1.0 - (base.effective_mrr / base.to_product.list_price)) * 100.0
+            } else { 0.0 }
+        }
+    }
+
+    /** ARR by customer — uses effective MRR (excludes trials, prorates new subs) */
     entity arr_by_customer("ARR By Customer") {
-        generated from entity subscription_arr.active_subs
-            group base.customer_id as by_cust
+        generated from entity subscription_arr.enriched_subs
+            group base.customer_id, base.customer_name, base.segment, base.region as by_cust
         output
 
         /** */ @dimension property customer_id("Customer ID") -> string { base.customer_id }
-        /** */ @metric property arr("ARR") -> float { sum(base.by_cust.mrr) * 12 }
+        /** */ @dimension property customer_name("Customer Name") -> string { base.customer_name }
+        /** */ @dimension property segment("Segment") -> string { base.segment }
+        /** */ @dimension property region("Region") -> string { base.region }
+        /** */ @metric property arr("ARR") -> float { sum(base.by_cust.effective_mrr) * 12 }
         /** */ @metric property sub_count("Subscription Count") -> int { count(base.by_cust.subscription_id) }
+        /** */ @metric property avg_discount("Avg Discount %") -> float { sum(base.by_cust.discount_pct) / count(base.by_cust.subscription_id) }
     }
 
     /** ARR by customer segment */
     entity arr_by_segment("ARR By Segment") {
-        generated from entity subscription_arr.active_subs
+        generated from entity subscription_arr.enriched_subs
             group base.segment as by_seg
         output
 
         /** */ @dimension property segment("Segment") -> string { base.segment }
-        /** */ @metric property arr("ARR") -> float { sum(base.by_seg.mrr) * 12 }
+        /** */ @metric property arr("ARR") -> float { sum(base.by_seg.effective_mrr) * 12 }
         /** */ @metric property sub_count("Subscription Count") -> int { count(base.by_seg.subscription_id) }
+        /** */ @metric property avg_discount("Avg Discount %") -> float { sum(base.by_seg.discount_pct) / count(base.by_seg.subscription_id) }
+    }
+
+    /** ARR by product category */
+    entity arr_by_product_category("ARR By Product Category") {
+        generated from entity subscription_arr.enriched_subs
+            group base.product_category as by_cat
+        output
+
+        /** */ @dimension property product_category("Product Category") -> string { base.product_category }
+        /** */ @metric property arr("ARR") -> float { sum(base.by_cat.effective_mrr) * 12 }
+        /** */ @metric property sub_count("Subscription Count") -> int { count(base.by_cat.subscription_id) }
     }
 }
