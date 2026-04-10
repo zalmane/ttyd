@@ -1,0 +1,10 @@
+id: avg_order_by_segment_ent_mm
+question: Average order size for Enterprise vs Mid-Market
+policy: revenue_analytics
+golden_sql: SELECT c.segment, AVG(o.amount) as avg_order FROM orders o JOIN customers c ON o.customer_id=c.customer_id WHERE o.status='completed' AND c.segment IN ('Enterprise','Mid-Market') GROUP BY c.segment
+result_type: table
+golden_answer:
+- segment: Enterprise
+  avg_order: 2655.2
+- segment: Mid-Market
+  avg_order: 2217.9

@@ -1,0 +1,6 @@
+id: small_orders_2024
+question: Total revenue from Small orders in 2024
+policy: order_classification
+golden_sql: SELECT SUM(o.amount) FROM orders o WHERE o.status='completed' AND o.amount<1000 AND YEAR(o.order_date)=2024
+result_type: scalar
+golden_answer: 3950.0

@@ -1,0 +1,16 @@
+id: customers_above_10k
+question: Customers who spent more than 10000 total
+policy: customer_health
+golden_sql: SELECT c.name, SUM(o.amount) as total FROM orders o JOIN customers c ON o.customer_id=c.customer_id WHERE o.status='completed' GROUP BY c.customer_id, c.name HAVING SUM(o.amount)>10000 ORDER BY total DESC
+result_type: table
+golden_answer:
+- name: Acme Corp
+  total: 24700.0
+- name: Globex Inc
+  total: 16000.0
+- name: Wayne Enterprises
+  total: 14600.0
+- name: Initech
+  total: 14250.0
+- name: Stark Industries
+  total: 12100.0

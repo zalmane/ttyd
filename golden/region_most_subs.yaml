@@ -1,0 +1,8 @@
+id: region_most_subs
+question: Which region has the most subscriptions?
+policy: subscription_arr
+golden_sql: SELECT c.region, COUNT(*) as cnt FROM subscriptions s JOIN customers c ON s.customer_id=c.customer_id WHERE s.status='active' GROUP BY c.region ORDER BY cnt DESC LIMIT 1
+result_type: table
+golden_answer:
+- region: US
+  cnt: 6

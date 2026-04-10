@@ -1,0 +1,6 @@
+id: emea_q1_2025
+question: Revenue from EMEA in Q1 2025
+policy: revenue_analytics
+golden_sql: SELECT SUM(o.amount) FROM orders o JOIN customers c ON o.customer_id=c.customer_id WHERE o.status='completed' AND c.region='EMEA' AND YEAR(o.order_date)=2025 AND MONTH(o.order_date) IN (1,2,3)
+result_type: scalar
+golden_answer: 13600.0

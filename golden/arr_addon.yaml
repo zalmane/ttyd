@@ -1,0 +1,6 @@
+id: arr_addon
+question: Total ARR from Add-on products
+policy: subscription_arr
+golden_sql: SELECT SUM(s.mrr)*12 FROM subscriptions s JOIN products p ON s.product_id=p.product_id WHERE s.status='active' AND s.mrr>0 AND p.category='Add-on'
+result_type: scalar
+golden_answer: 3120.0

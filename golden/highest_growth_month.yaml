@@ -1,0 +1,9 @@
+id: highest_growth_month
+question: Month with highest revenue growth vs previous month
+policy: revenue_analytics
+golden_sql: WITH monthly AS (SELECT YEAR(order_date) as yr, MONTH(order_date) as mo, SUM(amount) as rev FROM orders WHERE status='completed' GROUP BY yr, mo ORDER BY yr, mo) SELECT yr, mo, rev FROM monthly ORDER BY rev DESC LIMIT 1
+result_type: table
+golden_answer:
+- yr: 2025
+  mo: 3
+  rev: 21000.0

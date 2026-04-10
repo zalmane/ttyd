@@ -1,0 +1,16 @@
+id: above_avg_mrr
+question: Customers paying above average MRR
+policy: subscription_arr
+golden_sql: SELECT c.name, s.mrr FROM subscriptions s JOIN customers c ON s.customer_id=c.customer_id WHERE s.status='active' AND s.mrr > (SELECT AVG(mrr) FROM subscriptions WHERE status='active' AND mrr>0) ORDER BY s.mrr DESC
+result_type: table
+golden_answer:
+- name: Acme Corp
+  mrr: 500.0
+- name: Globex Inc
+  mrr: 500.0
+- name: Stark Industries
+  mrr: 500.0
+- name: Wayne Enterprises
+  mrr: 500.0
+- name: Massive Dynamic
+  mrr: 500.0

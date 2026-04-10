@@ -1,0 +1,6 @@
+id: net_mrr_change
+question: Net MRR change - new subs in 2025 minus churned
+policy: subscription_arr
+golden_sql: SELECT (SELECT SUM(mrr) FROM subscriptions WHERE status='active' AND YEAR(start_date)=2025) - (SELECT SUM(mrr) FROM subscriptions WHERE status='churned') as net_mrr
+result_type: scalar
+golden_answer: 630.0

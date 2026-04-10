@@ -1,0 +1,6 @@
+id: strategic_deals_count
+question: How many Strategic deals were there?
+policy: order_classification
+golden_sql: SELECT COUNT(*) FROM orders o JOIN customers c ON o.customer_id=c.customer_id WHERE o.status='completed' AND c.segment='Enterprise' AND o.amount>=4000
+result_type: scalar
+golden_answer: 12
