@@ -85,10 +85,34 @@ Annotations: @key @dim @met (short for @dimension, @metric)
 6. Each new entity references MODEL.ENTITY_ID where MODEL is the model name
 
 ## Output Format
-- You receive sources (read-only) and existing entities
-- Return ONLY entity definitions — do NOT include sources or model wrapper
-- Mark the answer entity with `output`
-- Include ALL existing entities (modified or not) plus any new ones
+- You receive sources (read-only) and existing entities (with line numbers) as context
+- Respond with EDITS to the entities section using this exact format:
+
+To ADD a new entity after the last line:
+<<<
+>>>
+ent new_entity from model.existing_entity filter ... output {
+  @met val:float = sum(base.grp.field)
+}
+
+To REPLACE lines:
+<<<
+old text to find exactly
+===
+new replacement text
+>>>
+
+To modify an existing entity (e.g. add a property), find the closing brace and expand it:
+<<<
+}
+===
+  new_prop:float = base.something
+}
+>>>
+
+- Each <<<...>>> block is one edit. Separate blocks with blank lines.
+- Keep edits minimal — only what's needed to answer the question.
+- Mark the answer entity with `output`.
 
 ## Patterns (generic — use MODEL_ID.ENTITY_ID for all references)
 
@@ -153,9 +177,13 @@ def run_query(
     result = {"attempts": 0, "total_input_tokens": 0, "total_output_tokens": 0}
     t0 = time.time()
 
-    # Initial request
-    user_msg = f"Sources (read-only context — do NOT output these):\n```\n{sources}\n```\n\nCurrent entities:\n```\n{entities}\n```\n\nQuestion: {question}\n\nReturn only the modified/new entity definitions in CRL format."
+    from compact_rl import number_lines, parse_edits, apply_edits
 
+    # Initial request — send line-numbered entities so LLM can reference them
+    numbered = number_lines(entities) if entities.strip() else "(no entities yet)"
+    user_msg = f"Sources (read-only):\n```\n{sources}\n```\n\nCurrent entities:\n```\n{numbered}\n```\n\nQuestion: {question}"
+
+    current_entities = entities
     messages = [{"role": "user", "content": user_msg}]
 
     for attempt in range(1, max_attempts + 1):
@@ -165,19 +193,29 @@ def run_query(
         result["total_input_tokens"] += usage.get("input_tokens", 0)
         result["total_output_tokens"] += usage.get("output_tokens", 0)
 
-        # Extract CRL from response (may be in code fences)
-        agent_entities = _extract_crl(text)
+        # Apply diffs to current entities
+        edits = parse_edits(text)
+        if edits:
+            patched, failures = apply_edits(current_entities, edits)
+            current_entities = patched
+        else:
+            # LLM returned full entities instead of diffs — use as-is or merge
+            extracted = _extract_crl(text)
+            if extracted.strip():
+                current_entities = _merge_entities(entities, extracted)
+
+        result["entities"] = current_entities
 
         # Try compile
         header = f"model {policy_key} {{"
-        full_crl = merge_crl(header, sources, agent_entities)
+        full_crl = merge_crl(header, sources, current_entities)
 
         try:
             ms = compact_to_modelset(full_crl)
             cr = Compiler(ms).verify()
             if not cr.has_errors():
                 result["status"] = "compiled"
-                result["entities"] = agent_entities
+                result["entities"] = current_entities
                 result["full_crl"] = full_crl
                 result["elapsed_s"] = round(time.time() - t0, 1)
                 result["compiler_result"] = cr
@@ -198,9 +236,53 @@ def run_query(
         messages.append({"role": "user", "content": error_feedback})
 
     result["status"] = "compile_fail"
-    result["entities"] = agent_entities
+    result["entities"] = current_entities
     result["elapsed_s"] = round(time.time() - t0, 1)
     return result
+
+
+def _merge_entities(existing: str, new: str) -> str:
+    """Merge existing entities with new/modified ones. New entities with same ID replace existing."""
+    import re
+
+    def _parse_blocks(text: str) -> dict[str, str]:
+        """Parse entity blocks into {id: full_block_text}."""
+        blocks = {}
+        current_id = None
+        current_lines = []
+        depth = 0
+        for line in text.split("\n"):
+            stripped = line.strip()
+            if stripped.startswith("ent ") or stripped.startswith("const "):
+                if current_id and current_lines:
+                    blocks[current_id] = "\n".join(current_lines)
+                current_id = stripped.split()[1]
+                current_lines = [line]
+                depth = 0
+            elif current_id is not None:
+                current_lines.append(line)
+            depth += stripped.count("{") - stripped.count("}")
+            if current_id and depth <= 0 and current_lines and "{" in "\n".join(current_lines):
+                blocks[current_id] = "\n".join(current_lines)
+                current_id = None
+                current_lines = []
+                depth = 0
+        if current_id and current_lines:
+            blocks[current_id] = "\n".join(current_lines)
+        return blocks
+
+    existing_blocks = _parse_blocks(existing)
+    new_blocks = _parse_blocks(new)
+
+    # New entities override existing; preserve order of existing, append truly new ones
+    merged = {}
+    for eid, block in existing_blocks.items():
+        merged[eid] = new_blocks.get(eid, block)
+    for eid, block in new_blocks.items():
+        if eid not in merged:
+            merged[eid] = block
+
+    return "\n".join(merged.values())
 
 
 def _extract_crl(text: str) -> str:
