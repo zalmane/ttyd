@@ -416,10 +416,11 @@ def ask(question: str, con) -> None:
         + f" {DIM}({p['_time']}s, {p['_tokens']} tok){RESET}")
     log(f"{DIM}{reasoning}{RESET}")
 
-    log(f"{CYAN}[exec]{RESET} Running...")
     if approach == "reuse":
+        log(f"{CYAN}[exec]{RESET} Reusing existing entity...")
         execute_reuse(p, con)
     else:
+        log(f"{CYAN}[exec]{RESET} Patching with LLM...")
         execute_patch(p, con)
 
     elapsed = time.time() - t_total
