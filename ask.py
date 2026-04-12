@@ -216,45 +216,46 @@ def execute_patch(plan_result: dict, con) -> None:
     model_name = plan_result.get("model")
     description = plan_result.get("description", "")
 
-    # Build list of models to try: planner's choice first, then others
-    models_to_try = []
-    if model_name and model_name in MODELS_CRL:
-        models_to_try.append(model_name)
-    for m in MODELS_CRL:
-        if m not in models_to_try:
-            models_to_try.append(m)
+    if not model_name or model_name not in MODELS_CRL:
+        log(f"{RED}Model '{model_name}' not found{RESET}")
+        log(f"{DIM}Available: {', '.join(sorted(MODELS_CRL.keys()))}{RESET}")
+        return
 
-    for i, mk in enumerate(models_to_try):
-        crl = MODELS_CRL[mk]
-        header, sources, entities = split_crl(crl)
+    crl = MODELS_CRL[model_name]
+    header, sources, entities = split_crl(crl)
 
-        t0 = time.time()
-        qr = run_query(description, mk, sources, entities, all_models_rl=ALL_MODELS_RL)
-        elapsed = time.time() - t0
+    t0 = time.time()
+    qr = run_query(description, model_name, sources, entities, all_models_rl=ALL_MODELS_RL)
+    elapsed = time.time() - t0
 
-        log(f"{DIM}LLM ({mk}): {elapsed:.1f}s, {qr.get('total_output_tokens', 0)} tok, {qr['attempts']} attempt(s){RESET}")
+    log(f"{DIM}LLM ({model_name}): {elapsed:.1f}s, {qr.get('total_output_tokens', 0)} tok, {qr['attempts']} attempt(s){RESET}")
 
-        if qr["status"] == "compiled":
-            orig_ids = _get_entity_ids(crl)
-            new_crl_lines = _extract_new_entities(qr.get("entities", ""), orig_ids)
-            _last["crl"] = "\n".join(new_crl_lines) if new_crl_lines else qr.get("entities", "")
-            if new_crl_lines:
-                log(f"\n{DIM}CRL (new entities):{RESET}")
-                for line in new_crl_lines:
-                    log(f"  {DIM}{line}{RESET}")
-            _run_new_output_entities(qr, orig_ids, con, model_id=mk)
-            return
+    if qr["status"] == "compiled":
+        orig_ids = _get_entity_ids(crl)
+        new_crl_lines = _extract_new_entities(qr.get("entities", ""), orig_ids)
+        _last["crl"] = "\n".join(new_crl_lines) if new_crl_lines else qr.get("entities", "")
+        if new_crl_lines:
+            log(f"\n{DIM}CRL (new entities):{RESET}")
+            for line in new_crl_lines:
+                log(f"  {DIM}{line}{RESET}")
+        _run_new_output_entities(qr, orig_ids, con, model_id=model_name)
+        return
 
-        errors = qr.get("last_errors", [])
-        if i < len(models_to_try) - 1:
-            log(f"{YELLOW}Patch {mk} failed, trying next model...{RESET}")
-            if errors:
-                log(f"  {DIM}{errors[0][:80]}{RESET}")
-        else:
-            log(f"{RED}All models failed{RESET}")
-            if errors:
-                for e in errors[:2]:
-                    log(f"  {DIM}{e[:100]}{RESET}")
+    # Show exactly what failed
+    log(f"\n{RED}Patch failed on model '{model_name}'{RESET}")
+    errors = qr.get("last_errors", [])
+    if errors:
+        log(f"{RED}Compilation errors:{RESET}")
+        for e in errors:
+            log(f"  {RED}{e}{RESET}")
+
+    # Show what the LLM produced
+    entities_out = qr.get("entities", "")
+    if entities_out:
+        log(f"\n{YELLOW}LLM output (failed to compile):{RESET}")
+        for line in entities_out.split("\n"):
+            if line.strip():
+                log(f"  {DIM}{line}{RESET}")
 
 
 def _get_entity_ids(crl_text: str) -> set[str]:
