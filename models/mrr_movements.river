@@ -1,0 +1,35 @@
+/** MRR movements — month-over-month MRR changes per customer with classification */
+model mrr_movements("MRR Movements") {
+
+    /** Per-customer month-over-month MRR change with status classification */
+    entity mrr_movements("MRR Movements") {
+        generated from entity customer_monthly_mrr.customer_monthly_mrr
+        output
+
+        /** */ @dimension property customer_id("Customer ID") -> string { base.customer_id }
+        /** */ @dimension property customer_name("Customer Name") -> string { base.customer_name }
+        /** */ @dimension property segment("Segment") -> string { base.segment }
+        /** */ @dimension property region("Region") -> string { base.region }
+
+        /** */ @dimension property year("Year") -> int { base.active_year }
+        /** */ @dimension property month("Month") -> int { base.active_month }
+
+        /** */ @metric property current_mrr("Current MRR") -> float { base.mrr }
+
+        /** */ @metric property previous_mrr("Previous MRR") -> option[float] { base.by_customer.mrr.lag(1) }
+
+        /** */ @metric property prev_mrr_safe("Previous MRR Safe") -> float { or_default(self.previous_mrr, 0.0) }
+
+        /** */ @metric property mrr_change("MRR Change") -> float { base.mrr - self.prev_mrr_safe }
+
+        /** */ @dimension property is_new("Is New") -> bool { is_option(self.previous_mrr) }
+
+        /** */ @dimension property change_category("Change Category") -> string {
+            if self.is_new { "new" }
+            else if (base.mrr == 0 and self.prev_mrr_safe > 0) { "churn" }
+            else if (base.mrr > self.prev_mrr_safe) { "expansion" }
+            else if (base.mrr < self.prev_mrr_safe) { "contraction" }
+            else { "flat" }
+        }
+    }
+}

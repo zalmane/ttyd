@@ -1,0 +1,47 @@
+/** Completed orders — only successfully fulfilled orders, enriched with customer and product data, classified by size and deal type */
+model completed_orders("Completed Orders") {
+
+    /** Completed orders with customer, product, and classification */
+    entity completed_orders("Completed Orders") {
+        generated from entity orders.orders filter (base.status == "completed")
+        output
+
+        /** Order identifiers */
+        property order_id("Order ID") -> string { base.order_id }
+        /** */
+        property customer_id("Customer ID") -> string { base.customer_id }
+        /** */
+        property product_id("Product ID") -> string { base.product_id }
+        /** */
+        property amount("Amount") -> float { base.amount }
+        /** */
+        property order_date("Order Date") -> date { base.order_date }
+
+        /** Customer dimensions */
+        property customer_name("Customer Name") -> string { base.to_customer.name }
+        /** */
+        property segment("Segment") -> string { base.to_customer.segment }
+        /** */
+        property region("Region") -> string { base.to_customer.region }
+
+        /** Product dimensions */
+        property product_name("Product Name") -> string { base.to_product.name }
+        /** */
+        property product_category("Product Category") -> string { base.to_product.category }
+
+        /** Order size tier based on amount thresholds */
+        property size_tier("Size Tier") -> string {
+            if base.amount >= 4000.0 { "Large" }
+            else if base.amount >= 1000.0 { "Medium" }
+            else { "Small" }
+        }
+
+        /** Deal type based on customer segment and order amount */
+        property deal_type("Deal Type") -> string {
+            if (base.to_customer.segment == "Enterprise" and base.amount >= 4000.0) { "Strategic" }
+            else if base.to_customer.segment == "Enterprise" { "Enterprise Standard" }
+            else if base.amount >= 2000.0 { "Growth" }
+            else { "Transactional" }
+        }
+    }
+}

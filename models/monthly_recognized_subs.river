@@ -1,0 +1,26 @@
+/** Monthly recognized subscriptions — one row per subscription with time dimensions for grouping */
+model monthly_recognized_subs("Monthly Recognized Subscriptions") {
+
+    /** Qualifying subscriptions with time dimensions extracted from start date */
+    entity monthly_recognized_subs("Monthly Recognized Subscriptions") {
+        generated from entity qualifying_subs.qualifying_subs
+        output
+
+        /** */ property subscription_id("Subscription ID") -> string { base.subscription_id }
+        /** */ property customer_id("Customer ID") -> string { base.customer_id }
+
+        /** */ property customer_name("Customer Name") -> string { base.customer_name }
+        /** */ property segment("Segment") -> string { base.segment }
+        /** */ property region("Region") -> string { base.region }
+
+        /** */ property product_category("Product Category") -> string { base.product_category }
+
+        /** */ property effective_mrr("Effective MRR") -> float { base.effective_mrr }
+
+        /** */ property active_year("Active Year") -> int { year(base.start_date) }
+        /** */ property active_month("Active Month") -> int { month(base.start_date) }
+
+        /** */ property start_date("Start Date") -> date { base.start_date }
+        /** */ property end_date("End Date") -> date { base.end_date }
+    }
+}

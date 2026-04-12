@@ -1,0 +1,25 @@
+/** Subscription fact — raw subscription records with relations to customer and product */
+model subscription("Subscription") {
+
+    /** */
+    source subscriptions("Subscriptions") {
+        table("subscriptions")
+        /** */ property subscription_id("Subscription ID") -> string
+        /** */ property customer_id("Customer ID") -> string
+        /** */ property product_id("Product ID") -> string
+        /** */ property mrr("MRR") -> float
+        /** */ property start_date("Start Date") -> date
+        /** */ property end_date("End Date") -> date
+        /** */ property status("Status") -> string
+
+        /** Lookup customer dimension */
+        relation to_customer("To Customer") {
+            related to one customer.customers using base.customer_id == target.customer_id
+        }
+
+        /** Lookup product dimension */
+        relation to_product("To Product") {
+            related to one product.products using base.product_id == target.product_id
+        }
+    }
+}

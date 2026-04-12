@@ -1,0 +1,24 @@
+/** Order fact — raw transactional orders with relations to customer and product */
+model orders("Order") {
+
+    /** */
+    source orders("Orders") {
+        table("orders")
+        /** */ property order_id("Order ID") -> string
+        /** */ property customer_id("Customer ID") -> string
+        /** */ property product_id("Product ID") -> string
+        /** */ property amount("Amount") -> float
+        /** */ property order_date("Order Date") -> date
+        /** */ property status("Status") -> string
+
+        /** Lookup customer dimension */
+        relation to_customer("To Customer") {
+            related to one customer.customers using base.customer_id == target.customer_id
+        }
+
+        /** Lookup product dimension */
+        relation to_product("To Product") {
+            related to one product.products using base.product_id == target.product_id
+        }
+    }
+}

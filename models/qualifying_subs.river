@@ -1,0 +1,47 @@
+/** Qualifying subscriptions — active non-trial subscriptions with MRR > 0, enriched with effective MRR and discount calculations */
+model qualifying_subs("Qualifying Subscriptions") {
+
+    /** Active subscriptions that count toward ARR/MRR metrics */
+    entity qualifying_subs("Qualifying Subscriptions") {
+        generated from entity subscription.subscriptions filter (base.status == "active" and base.mrr > 0 and base.status != "trial")
+        output
+
+        /** Subscription identifiers */
+        property subscription_id("Subscription ID") -> string { base.subscription_id }
+        /** */
+        property customer_id("Customer ID") -> string { base.customer_id }
+        /** */
+        property product_id("Product ID") -> string { base.product_id }
+        /** */
+        property start_date("Start Date") -> date { base.start_date }
+        /** */
+        property end_date("End Date") -> date { base.end_date }
+
+        /** Customer dimensions */
+        property customer_name("Customer Name") -> string { base.to_customer.name }
+        /** */
+        property segment("Segment") -> string { base.to_customer.segment }
+        /** */
+        property region("Region") -> string { base.to_customer.region }
+
+        /** Product dimensions */
+        property product_name("Product Name") -> string { base.to_product.name }
+        /** */
+        property product_category("Product Category") -> string { base.to_product.category }
+        /** */
+        property list_price("List Price") -> float { base.to_product.list_price }
+
+        /** Effective MRR — 0 if dates are inverted, otherwise raw MRR */
+        property effective_mrr("Effective MRR") -> float {
+            if (base.start_date > base.end_date) { 0.0 }
+            else { base.mrr }
+        }
+
+        /** Discount percentage vs product list price */
+        property discount_pct("Discount Percentage") -> float {
+            if (base.to_product.list_price > 0) {
+                (1.0 - (base.mrr / base.to_product.list_price)) * 100.0
+            } else { 0.0 }
+        }
+    }
+}

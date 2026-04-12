@@ -1,0 +1,13 @@
+/** Customer dimension — master data for all customer references */
+model customer("Customer") {
+
+    /** */
+    source customers("Customers") {
+        table("customers")
+        /** */ property customer_id("Customer ID") -> string
+        /** */ property name("Name") -> string
+        /** */ property segment("Segment") -> string
+        /** */ property region("Region") -> string
+        /** */ property signup_date("Signup Date") -> date
+    }
+}

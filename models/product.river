@@ -1,0 +1,12 @@
+/** Product dimension — catalog of all products */
+model product("Product") {
+
+    /** */
+    source products("Products") {
+        table("products")
+        /** */ property product_id("Product ID") -> string
+        /** */ property name("Product Name") -> string
+        /** */ property category("Category") -> string
+        /** */ property list_price("List Price") -> float
+    }
+}

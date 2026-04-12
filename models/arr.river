@@ -1,0 +1,38 @@
+/** ARR — Annual Recurring Revenue per subscription, ready for any grouping at query time */
+model arr("ARR") {
+
+    /** Per-subscription ARR with all dimensions for flexible grouping */
+    entity arr("ARR") {
+        generated from entity qualifying_subs.qualifying_subs
+        output
+
+        /** Subscription identifiers */
+        property subscription_id("Subscription ID") -> string { base.subscription_id }
+        /** */
+        property customer_id("Customer ID") -> string { base.customer_id }
+
+        /** The ARR value — annualized effective MRR */
+        property arr("ARR") -> float { base.effective_mrr * 12 }
+
+        /** MRR passthrough for MRR-specific queries */
+        property effective_mrr("Effective MRR") -> float { base.effective_mrr }
+
+        /** Discount passthrough */
+        property discount_pct("Discount Percentage") -> float { base.discount_pct }
+
+        /** Customer dimensions */
+        property customer_name("Customer Name") -> string { base.customer_name }
+        /** */
+        property segment("Segment") -> string { base.segment }
+        /** */
+        property region("Region") -> string { base.region }
+
+        /** Product dimensions */
+        property product_category("Product Category") -> string { base.product_category }
+
+        /** Time dimensions */
+        property start_date("Start Date") -> date { base.start_date }
+        /** */
+        property end_date("End Date") -> date { base.end_date }
+    }
+}

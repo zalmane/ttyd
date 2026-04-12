@@ -1,0 +1,39 @@
+/** Revenue — completed order revenue with time dimensions, ready for any grouping at query time */
+model revenue("Revenue") {
+
+    /** Per-order revenue with year and month extracted for time-series analysis */
+    entity revenue("Revenue") {
+        generated from entity completed_orders.completed_orders
+        output
+
+        /** Order identifiers */
+        property order_id("Order ID") -> string { base.order_id }
+        /** */
+        property customer_id("Customer ID") -> string { base.customer_id }
+        /** */
+        property order_date("Order Date") -> date { base.order_date }
+
+        /** The revenue amount — semantic alias for amount from completed orders */
+        property revenue("Revenue") -> float { base.amount }
+
+        /** Time dimensions */
+        property order_year("Order Year") -> int { year(base.order_date) }
+        /** */
+        property order_month("Order Month") -> int { month(base.order_date) }
+
+        /** Customer dimensions */
+        property customer_name("Customer Name") -> string { base.customer_name }
+        /** */
+        property segment("Segment") -> string { base.segment }
+        /** */
+        property region("Region") -> string { base.region }
+
+        /** Product dimensions */
+        property product_category("Product Category") -> string { base.product_category }
+
+        /** Classification dimensions */
+        property size_tier("Size Tier") -> string { base.size_tier }
+        /** */
+        property deal_type("Deal Type") -> string { base.deal_type }
+    }
+}

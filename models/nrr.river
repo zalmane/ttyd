@@ -1,0 +1,22 @@
+/** NRR — Net Revenue Retention, month-over-month, excluding new customers from the cohort */
+model nrr("NRR") {
+
+    /** Monthly NRR with expansion, contraction, and churn breakdown */
+    entity nrr("NRR") {
+        generated from entity mrr_movements.mrr_movements
+            filter (base.change_category != "new")
+            group base.year, base.month as by_period
+        output
+
+        /** */ @dimension property year("Year") -> int { base.year }
+        /** */ @dimension property month("Month") -> int { base.month }
+
+        /** */ @metric property nrr_pct("NRR Percentage") -> float { (sum(base.by_period.current_mrr) / sum(base.by_period.mrr_change)) * 100 }
+
+        /** */ @metric property ending_mrr("Ending MRR") -> float { sum(base.by_period.current_mrr) }
+
+        /** */ @metric property net_change("Net Change") -> float { sum(base.by_period.mrr_change) }
+
+        /** */ @metric property cohort_size("Cohort Size") -> int { count(base.by_period.customer_id) }
+    }
+}
