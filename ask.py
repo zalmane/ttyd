@@ -152,11 +152,13 @@ Output ONLY valid JSON."""
 
 
 def plan(question: str) -> dict:
+    from llm_runner import MODEL_HAIKU
     model_names = ", ".join(sorted(MODELS_CRL.keys()))
     t0 = time.time()
     text, usage = _call_llm(
         PLANNER_PROMPT.format(catalog=CONCEPT_CATALOG_TEXT, model_names=model_names),
         [{"role": "user", "content": question}],
+        model=MODEL_HAIKU,
         max_tokens=300,
     )
     text = text.strip()

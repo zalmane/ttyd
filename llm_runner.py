@@ -26,7 +26,9 @@ POLICY_DIR = Path(__file__).parent / "policies"
 # Bedrock config
 AWS_PROFILE = "DevProfile"
 AWS_REGION = "us-east-1"
-MODEL_ID = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+MODEL_SONNET = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+MODEL_HAIKU = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+MODEL_ID = MODEL_SONNET  # default for CRL patch + SQL generation
 MAX_TOKENS = 4096
 MAX_FIX_ATTEMPTS = 3
 
@@ -41,7 +43,7 @@ def _get_client():
     return _bedrock_client
 
 
-def _call_llm(system: str, messages: list[dict], max_tokens: int = MAX_TOKENS) -> tuple[str, dict]:
+def _call_llm(system: str, messages: list[dict], max_tokens: int = MAX_TOKENS, model: str = None) -> tuple[str, dict]:
     """Call Bedrock Claude. Returns (response_text, usage_dict)."""
     client = _get_client()
     body = {
@@ -51,7 +53,7 @@ def _call_llm(system: str, messages: list[dict], max_tokens: int = MAX_TOKENS) -
         "messages": messages,
     }
     resp = client.invoke_model(
-        modelId=MODEL_ID,
+        modelId=model or MODEL_ID,
         contentType="application/json",
         body=json.dumps(body),
     )
