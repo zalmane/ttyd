@@ -556,33 +556,104 @@ def _debug_trace():
         return
 
     from riverlang.ast.riverlang_ast import Entity, Source
-    model = ms.models[0]
+
+    # Collect all entities across all models in the compiled set
+    all_entities = []
+    for model in ms.models:
+        for e in model.elements:
+            if isinstance(e.element, Entity):
+                all_entities.append((model, e))
+
+    # Find which entities are in the SQL dependency chain of the last query
+    # For now show all entities in the patched model, plus referenced ones
+    target_model_id = _last.get("plan", {}).get("model")
     sql_gen = cr.get_sql_generator()
-    entities = [e for e in model.elements if isinstance(e.element, Entity)]
 
-    print(f"\n{BOLD}  Debug trace — {len(entities)} entities in lineage{RESET}\n")
+    # Show entities from the target model (the one that was patched/reused)
+    shown = []
+    for model, elem in all_entities:
+        if target_model_id and model.id != target_model_id:
+            # Also show entities from upstream models if referenced
+            # (check if any target model entity references this model)
+            continue
+        shown.append((model, elem))
 
-    for i, elem in enumerate(entities):
+    # If nothing in target, show all
+    if not shown:
+        shown = all_entities
+
+    print(f"\n{BOLD}  Debug: {len(shown)} entities in {target_model_id or 'query'}{RESET}\n")
+
+    for i, (model, elem) in enumerate(shown):
         fqn = FQN((model.id, elem.id))
         is_output = elem.element.is_output
-        marker = f" {GREEN}[output]{RESET}" if is_output else ""
         gen = elem.element.generator
+
+        # Build human-readable title
+        title_parts = []
         base_str = ".".join(gen.base.value) if hasattr(gen, "base") else "?"
-        filter_str = f" filter {gen.filter.to_grammar()}" if hasattr(gen, "filter") and gen.filter else ""
-        group_str = f" {gen.grouping.to_grammar()}" if hasattr(gen, "grouping") and gen.grouping else ""
 
-        print(f"  {CYAN}[{i+1}/{len(entities)}]{RESET} {BOLD}{elem.id}{RESET}{marker}")
-        print(f"  {DIM}from {base_str}{filter_str}{group_str}{RESET}")
+        # Describe what this entity does
+        if hasattr(gen, "filter") and gen.filter:
+            filter_grammar = gen.filter.to_grammar()
+            # Shorten common patterns
+            title_parts.append(f"filtered ({filter_grammar[:60]}{'...' if len(filter_grammar) > 60 else ''})")
 
+        if hasattr(gen, "grouping") and gen.grouping:
+            group_fields = [f.to_grammar() for f in gen.grouping.group_properties]
+            readable_fields = [f.replace("base.", "") for f in group_fields]
+            title_parts.append(f"grouped by {', '.join(readable_fields)}")
+
+        if hasattr(gen, "order_by") and gen.order_by:
+            title_parts.append("sorted")
+
+        if hasattr(gen, "limit") and gen.limit:
+            title_parts.append(f"top {gen.limit}")
+
+        if hasattr(gen, "drop_duplicates") and gen.drop_duplicates:
+            title_parts.append("deduplicated")
+
+        # Describe the properties
+        props = elem.element.properties
+        metrics = [p.schema_field.id for p in props if "metric" in p.schema_field.annotations]
+        dims = [p.schema_field.id for p in props if "dimension" in p.schema_field.annotations]
+
+        # Build description line
+        desc = ""
+        if title_parts:
+            desc = ", ".join(title_parts)
+        if metrics:
+            desc += ("; " if desc else "") + f"measures: {', '.join(metrics)}"
+        if dims:
+            desc += ("; " if desc else "") + f"by: {', '.join(dims)}"
+
+        # Entity description from the .river file
+        entity_desc = elem.description if elem.description else ""
+
+        # Print header
+        marker = f" {GREEN}[answer]{RESET}" if is_output else ""
+        step_color = GREEN if is_output else CYAN
+        print(f"  {step_color}{'━' * 60}{RESET}")
+        name = elem.id.replace("_", " ").title()
+        print(f"  {step_color}Step {i+1}{RESET}  {BOLD}{name}{RESET}{marker}")
+        if entity_desc:
+            print(f"  {DIM}{entity_desc}{RESET}")
+        if desc:
+            print(f"  {DIM}{desc}{RESET}")
+        print(f"  {DIM}from: {base_str}{RESET}")
+
+        # Run and show results
         try:
             sql = sql_gen.generate_sql(fqn, dialect="duckdb")
             rows = con.execute(sql).fetchall()
             cols = [d[0] for d in con.description]
-            print(f"  {DIM}{len(rows)} rows, {len(cols)} cols{RESET}")
+            print(f"  {DIM}{len(rows)} rows{RESET}")
             if rows:
                 print(format_table(cols, rows[:5]))
                 if len(rows) > 5:
-                    print(f"  {DIM}... and {len(rows) - 5} more rows{RESET}")
+                    print(f"  {DIM}... {len(rows) - 5} more{RESET}")
+            else:
+                print(f"  {DIM}(empty){RESET}")
         except Exception as e:
             print(f"  {RED}Error: {e}{RESET}")
         print()
