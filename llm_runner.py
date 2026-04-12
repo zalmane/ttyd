@@ -85,6 +85,7 @@ Annotations: @key @dim @met (short for @dimension, @metric)
    But for date RANGE overlap (was a subscription active during a month?), you MUST use parse_date, not year()/month().
    NEVER compare dates to bare strings. NEVER use `date("...")` — use `parse_date("...")`.
 6. Each new entity references MODEL.ENTITY_ID where MODEL is the model name
+7. There is NO `any()` function. For distinct lists: group by ALL output dimension fields, or use `dedup` to remove duplicate rows. Example: to get unique customers, group by customer_id, customer_name, segment, region — not `any(base.grp.name)`.
 
 ## Output Format
 - You receive sources (read-only) and existing entities (with line numbers) as context
