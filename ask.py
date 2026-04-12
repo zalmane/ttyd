@@ -47,7 +47,8 @@ def _load_models():
     """Load all .river models, compile, build CRL versions and concept catalog."""
     # Read and parse all models together (cross-model references need joint compilation)
     model_files = sorted(MODELS_DIR.glob("*.river"))
-    all_rl = "\n".join(f.read_text() for f in model_files)
+    all_rl_text = "\n".join(f.read_text() for f in model_files)
+    all_rl = all_rl_text
     ms = RiverLangParser.from_str(all_rl)
     cr = Compiler(ms).verify()
     if cr.has_errors():
@@ -106,10 +107,10 @@ def _load_models():
             if concept["fields"] and not concept["metrics"] and not concept["dimensions"]:
                 catalog_lines.append(f"    fields: {', '.join(concept['fields'][:6])}")
 
-    return ms, cr, models_rl, models_crl, catalog, "\n".join(catalog_lines)
+    return ms, cr, models_rl, models_crl, catalog, "\n".join(catalog_lines), all_rl_text
 
 
-MODELS_MS, MODELS_CR, MODELS_RL, MODELS_CRL, CONCEPT_CATALOG, CONCEPT_CATALOG_TEXT = _load_models()
+MODELS_MS, MODELS_CR, MODELS_RL, MODELS_CRL, CONCEPT_CATALOG, CONCEPT_CATALOG_TEXT, ALL_MODELS_RL = _load_models()
 
 # ---------------------------------------------------------------------------
 # Planner
@@ -228,7 +229,7 @@ def execute_patch(plan_result: dict, con) -> None:
         header, sources, entities = split_crl(crl)
 
         t0 = time.time()
-        qr = run_query(description, mk, sources, entities)
+        qr = run_query(description, mk, sources, entities, all_models_rl=ALL_MODELS_RL)
         elapsed = time.time() - t0
 
         log(f"{DIM}LLM ({mk}): {elapsed:.1f}s, {qr.get('total_output_tokens', 0)} tok, {qr['attempts']} attempt(s){RESET}")
@@ -241,7 +242,7 @@ def execute_patch(plan_result: dict, con) -> None:
                 log(f"\n{DIM}CRL (new entities):{RESET}")
                 for line in new_crl_lines:
                     log(f"  {DIM}{line}{RESET}")
-            _run_new_output_entities(qr, orig_ids, con)
+            _run_new_output_entities(qr, orig_ids, con, model_id=mk)
             return
 
         errors = qr.get("last_errors", [])
@@ -281,26 +282,34 @@ def _extract_new_entities(entities_text: str, orig_ids: set[str]) -> list[str]:
     return result
 
 
-def _run_new_output_entities(qr: dict, orig_ids: set[str], con) -> None:
+def _run_new_output_entities(qr: dict, orig_ids: set[str], con, model_id: str = None) -> None:
     cr = qr["compiler_result"]
     ms = qr["model_set"]
-    model = ms.models[0]
 
     _last["model_set"] = ms
     _last["compiler_result"] = cr
     _last["con"] = con
 
+    # Find the target model (the one that was patched)
+    target_model = None
+    for m in ms.models:
+        if model_id and m.id == model_id:
+            target_model = m
+            break
+    if not target_model:
+        target_model = ms.models[0]
+
     new_output = [
-        e for e in model.elements
+        e for e in target_model.elements
         if hasattr(e.element, "is_output") and e.element.is_output
         and e.id not in orig_ids
     ]
     if not new_output:
-        new_output = [e for e in model.elements if hasattr(e.element, "is_output") and e.element.is_output]
+        new_output = [e for e in target_model.elements if hasattr(e.element, "is_output") and e.element.is_output]
 
     sql_gen = cr.get_sql_generator()
     for ent in new_output:
-        _run_entity(sql_gen, model.id, ent, con)
+        _run_entity(sql_gen, target_model.id, ent, con)
 
 
 # Last query state

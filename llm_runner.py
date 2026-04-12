@@ -19,6 +19,7 @@ import time
 from pathlib import Path
 
 import boto3
+from riverlang.ast.parser import RiverLangParser
 
 POLICY_DIR = Path(__file__).parent / "policies"
 
@@ -158,6 +159,7 @@ def run_query(
     sources: str,
     entities: str,
     max_attempts: int = MAX_FIX_ATTEMPTS,
+    all_models_rl: str = "",
 ) -> dict:
     """Run a CRL query with compilation feedback loop.
 
@@ -167,6 +169,7 @@ def run_query(
         sources: CRL sources section (read-only context)
         entities: CRL entities section (editable)
         max_attempts: Max compilation fix attempts
+        all_models_rl: Full RiverLang text of ALL other models (for cross-model compilation)
 
     Returns:
         dict with: status, entities, elapsed_s, attempts, usage, errors
@@ -206,12 +209,24 @@ def run_query(
 
         result["entities"] = current_entities
 
-        # Try compile
+        # Try compile — include all other models for cross-model references
         header = f"model {policy_key} {{"
         full_crl = merge_crl(header, sources, current_entities)
 
         try:
-            ms = compact_to_modelset(full_crl)
+            if all_models_rl:
+                # Compile the patched model together with all other models
+                # Replace the original model in the full RL with the patched CRL version
+                patched_rl = full_crl  # This is CRL, need to parse separately
+                patched_ms = compact_to_modelset(full_crl)
+                # Parse all other models
+                other_ms = RiverLangParser.from_str(all_models_rl)
+                # Replace the patched model
+                combined_models = [m for m in other_ms.models if m.id != policy_key] + patched_ms.models
+                from riverlang.ast.riverlang_ast import ModelSet
+                ms = ModelSet(models=combined_models)
+            else:
+                ms = compact_to_modelset(full_crl)
             cr = Compiler(ms).verify()
             if not cr.has_errors():
                 result["status"] = "compiled"
