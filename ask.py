@@ -80,32 +80,38 @@ def _load_models():
 
             is_output = getattr(el, "is_output", False)
             props = []
+            display_names = []
             if hasattr(el, "properties"):
                 for p in el.properties:
                     sf = p.schema_field
                     ann = sf.annotations[0] if sf.annotations else None
-                    props.append({"id": sf.id, "ann": ann})
+                    props.append({"id": sf.id, "display": sf.display_name, "ann": ann, "desc": sf.description})
+                    display_names.append(sf.display_name)
 
             concept = {
                 "model": model.id,
                 "entity": elem.id,
                 "description": elem.description,
                 "output": is_output,
-                "metrics": [p["id"] for p in props if p["ann"] == "metric"],
-                "dimensions": [p["id"] for p in props if p["ann"] == "dimension"],
-                "fields": [p["id"] for p in props if p["ann"] is None],
+                "metrics": [p["display"] for p in props if p["ann"] == "metric"],
+                "dimensions": [p["display"] for p in props if p["ann"] == "dimension"],
+                "fields": [p["display"] for p in props if p["ann"] is None],
+                "all_names": display_names,
             }
             catalog.append(concept)
 
             mark = " [output]" if is_output else ""
             desc = f" — {elem.description}" if elem.description else ""
-            catalog_lines.append(f"  {model.id}.{elem.id}{mark}{desc}")
+            entity_name = elem.display_name or elem.id.replace("_", " ").title()
+            catalog_lines.append(f"  {model.id}: {entity_name}{mark}{desc}")
             if concept["metrics"]:
-                catalog_lines.append(f"    metrics: {', '.join(concept['metrics'])}")
+                catalog_lines.append(f"    measures: {', '.join(concept['metrics'])}")
             if concept["dimensions"]:
                 catalog_lines.append(f"    dimensions: {', '.join(concept['dimensions'])}")
-            if concept["fields"] and not concept["metrics"] and not concept["dimensions"]:
-                catalog_lines.append(f"    fields: {', '.join(concept['fields'][:6])}")
+            # Always show all property names as concepts for matching
+            all_names = [n for n in display_names if n not in concept["metrics"] and n not in concept["dimensions"]]
+            if all_names:
+                catalog_lines.append(f"    concepts: {', '.join(all_names)}")
 
     return ms, cr, models_rl, models_crl, catalog, "\n".join(catalog_lines), all_rl_text
 
