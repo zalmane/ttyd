@@ -227,17 +227,19 @@ def execute_patch(plan_result: dict, con) -> None:
     current_description = description
 
     for sql_attempt in range(1, MAX_SQL_RETRIES + 1):
-        # LLM call to generate CRL patch
-        t0 = time.time()
-        qr = run_query(current_description, model_name, sources, entities, all_models_rl=ALL_MODELS_RL)
-        elapsed = time.time() - t0
-        attempts = qr["attempts"]
-        tok = qr.get("total_output_tokens", 0)
+        # LLM call to generate CRL patch — log each attempt as it happens
+        def _on_attempt(attempt, status, elapsed, tok, error):
+            if status == "compiled":
+                log(f"  {DIM}  attempt {attempt}: {elapsed}s, {tok} tok → {GREEN}compiled{RESET}")
+            else:
+                err_short = str(error).split("\n")[0][:100] if error else "?"
+                log(f"  {DIM}  attempt {attempt}: {elapsed}s, {tok} tok → {RED}error{RESET} {DIM}{err_short}{RESET}")
 
-        if attempts == 1:
-            log(f"  {DIM}LLM call: {elapsed:.1f}s, {tok} tok, compiled first try{RESET}")
-        else:
-            log(f"  {DIM}LLM call: {elapsed:.1f}s, {tok} tok, {attempts} compile retries (errors on first {attempts-1}){RESET}")
+        t0 = time.time()
+        qr = run_query(current_description, model_name, sources, entities,
+                        all_models_rl=ALL_MODELS_RL, on_attempt=_on_attempt)
+        elapsed = time.time() - t0
+        log(f"  {DIM}total: {elapsed:.1f}s, {qr.get('total_output_tokens', 0)} tok{RESET}")
 
         # Compilation failed — show errors and stop
         if qr["status"] != "compiled":

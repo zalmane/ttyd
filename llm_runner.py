@@ -162,6 +162,7 @@ def run_query(
     entities: str,
     max_attempts: int = MAX_FIX_ATTEMPTS,
     all_models_rl: str = "",
+    on_attempt: callable = None,
 ) -> dict:
     """Run a CRL query with compilation feedback loop.
 
@@ -193,10 +194,13 @@ def run_query(
 
     for attempt in range(1, max_attempts + 1):
         result["attempts"] = attempt
+        attempt_t0 = time.time()
 
         text, usage = _call_llm(SYSTEM_PROMPT, messages)
+        llm_elapsed = round(time.time() - attempt_t0, 1)
         result["total_input_tokens"] += usage.get("input_tokens", 0)
         result["total_output_tokens"] += usage.get("output_tokens", 0)
+        out_tok = usage.get("output_tokens", 0)
 
         # Apply diffs to current entities
         edits = parse_edits(text)
@@ -231,6 +235,8 @@ def run_query(
                 ms = compact_to_modelset(full_crl)
             cr = Compiler(ms).verify()
             if not cr.has_errors():
+                if on_attempt:
+                    on_attempt(attempt, "compiled", llm_elapsed, out_tok, None)
                 result["status"] = "compiled"
                 result["entities"] = current_entities
                 result["full_crl"] = full_crl
@@ -243,6 +249,9 @@ def run_query(
             errors = [str(e)]
 
         result["last_errors"] = errors
+
+        if on_attempt:
+            on_attempt(attempt, "error", llm_elapsed, out_tok, errors[0] if errors else "unknown")
 
         if attempt >= max_attempts:
             break
