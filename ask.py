@@ -397,6 +397,54 @@ def format_table(cols: list[str], rows: list[tuple]) -> str:
 # Main
 # ---------------------------------------------------------------------------
 
+SQL_COMPARE_PROMPT = """You are a SQL expert. Given these DuckDB tables and model descriptions, write a SQL query to answer the question.
+
+Tables:
+  orders(order_id VARCHAR, customer_id VARCHAR, product_id VARCHAR, amount DOUBLE, order_date DATE, status VARCHAR)
+  customers(customer_id VARCHAR, name VARCHAR, segment VARCHAR, region VARCHAR, signup_date DATE)
+  subscriptions(subscription_id VARCHAR, customer_id VARCHAR, product_id VARCHAR, mrr DOUBLE, start_date DATE, end_date DATE, status VARCHAR)
+  products(product_id VARCHAR, name VARCHAR, category VARCHAR, list_price DOUBLE)
+
+Business rules from our governed models:
+{model_descriptions}
+
+Follow these rules precisely — they define what "completed orders", "qualifying subscriptions", "ARR", "effective MRR", etc. mean.
+Return ONLY the SQL query, no explanation."""
+
+
+def _run_direct_sql(question: str, con) -> dict:
+    """Generate SQL directly via LLM and run it. Returns result dict."""
+    import re
+    t0 = time.time()
+    text, usage = _call_llm(
+        SQL_COMPARE_PROMPT.format(model_descriptions=CONCEPT_CATALOG_TEXT),
+        [{"role": "user", "content": question}],
+        max_tokens=800,
+    )
+    elapsed = round(time.time() - t0, 1)
+    out_tok = usage.get("output_tokens", 0)
+
+    # Extract SQL
+    m = re.search(r"```(?:sql)?\s*\n(.*?)```", text, re.DOTALL)
+    raw_sql = m.group(1).strip() if m else text.strip()
+
+    result = {"elapsed_s": elapsed, "output_tokens": out_tok, "sql": raw_sql}
+
+    try:
+        rows = con.execute(raw_sql).fetchall()
+        cols = [d[0] for d in con.description]
+        result["rows"] = rows
+        result["cols"] = cols
+        result["status"] = "ok"
+    except Exception as e:
+        result["rows"] = []
+        result["cols"] = []
+        result["status"] = "error"
+        result["error"] = str(e).split("\n")[0][:150]
+
+    return result
+
+
 def ask(question: str, con) -> None:
     t_total = time.time()
     print(f"\n{BOLD}  Q: {question}{RESET}")
@@ -422,6 +470,65 @@ def ask(question: str, con) -> None:
     else:
         log(f"{CYAN}[2/2 execute]{RESET} Generating CRL patch... {DIM}(LLM call){RESET}")
         execute_patch(p, con)
+
+    crl_elapsed = time.time() - t_total
+
+    # Comparison mode: also generate direct SQL and compare
+    if _compare_mode:
+        log(f"\n{CYAN}{'─' * 50}{RESET}")
+        log(f"{CYAN}[compare]{RESET} Generating direct SQL... {DIM}(LLM call){RESET}")
+        sql_result = _run_direct_sql(question, con)
+        log(f"  {DIM}LLM call: {sql_result['elapsed_s']}s, {sql_result['output_tokens']} tok{RESET}")
+
+        if sql_result["status"] == "error":
+            log(f"  {RED}SQL error: {sql_result['error']}{RESET}")
+        else:
+            log(f"  {DIM}SQL: {sql_result['sql'][:120]}{'...' if len(sql_result['sql']) > 120 else ''}{RESET}")
+            if sql_result["rows"]:
+                print(f"\n{BOLD}  Direct SQL result:{RESET}")
+                print(format_table(sql_result["cols"], sql_result["rows"][:10]))
+
+        # Compare results
+        crl_sql = _last.get("sql")
+        if crl_sql and sql_result["status"] == "ok" and sql_result["rows"]:
+            try:
+                crl_rows = sorted(con.execute(crl_sql).fetchall())
+                sql_rows = sorted(sql_result["rows"])
+                # Compare first column values (the main metric)
+                crl_vals = set()
+                sql_vals = set()
+                for r in crl_rows:
+                    for v in r:
+                        if isinstance(v, (int, float)):
+                            crl_vals.add(round(v, 1))
+                for r in sql_rows:
+                    for v in r:
+                        if isinstance(v, (int, float)):
+                            sql_vals.add(round(v, 1))
+
+                overlap = crl_vals & sql_vals
+                if overlap:
+                    log(f"\n  {GREEN}Results MATCH{RESET} {DIM}(shared values: {', '.join(str(v) for v in sorted(overlap)[:5])}){RESET}")
+                elif not crl_vals or not sql_vals:
+                    log(f"\n  {YELLOW}Can't compare{RESET} {DIM}(no numeric values to compare){RESET}")
+                else:
+                    log(f"\n  {RED}Results DIFFER{RESET}")
+                    log(f"    {DIM}CRL values:  {sorted(crl_vals)[:5]}{RESET}")
+                    log(f"    {DIM}SQL values:  {sorted(sql_vals)[:5]}{RESET}")
+            except Exception:
+                pass
+
+        # Timing comparison
+        log(f"\n  {BOLD}Comparison:{RESET}")
+        log(f"    CRL approach:  {crl_elapsed:.1f}s total")
+        log(f"    Direct SQL:    {sql_result['elapsed_s']}s total")
+        speedup = (sql_result['elapsed_s'] - crl_elapsed) / sql_result['elapsed_s'] * 100 if sql_result['elapsed_s'] > 0 else 0
+        if crl_elapsed < sql_result['elapsed_s']:
+            log(f"    {GREEN}CRL is {abs(speedup):.0f}% faster{RESET}")
+        elif crl_elapsed > sql_result['elapsed_s']:
+            log(f"    {YELLOW}Direct SQL is {abs(speedup):.0f}% faster{RESET}")
+        else:
+            log(f"    {DIM}Same speed{RESET}")
 
     elapsed = time.time() - t_total
     log(f"\n{DIM}Total: {elapsed:.1f}s{RESET}")
@@ -463,8 +570,11 @@ def print_welcome():
 
 HISTORY_FILE = Path(__file__).parent / ".ask_history"
 
+_compare_mode = False
+
 COMMANDS = {
     "/help":     "Show this help",
+    "/compare":  "Toggle comparison mode — also generates direct SQL and compares results",
     "/sql":      "Show last generated SQL",
     "/crl":      "Show last generated CRL entities",
     "/plan":     "Show last planner output",
@@ -537,6 +647,13 @@ def handle_command(cmd: str) -> bool:
 
     if cmd == "/debug":
         _debug_trace()
+        return False
+
+    if cmd == "/compare":
+        global _compare_mode
+        _compare_mode = not _compare_mode
+        state = f"{GREEN}ON{RESET}" if _compare_mode else f"{RED}OFF{RESET}"
+        print(f"  Comparison mode: {state}")
         return False
 
     if cmd == "/clear":
