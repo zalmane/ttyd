@@ -252,8 +252,16 @@ def execute_patch(plan_result: dict, con) -> None:
                 log(f"\n{YELLOW}SQL error, retrying patch ({sql_attempt}/{MAX_SQL_RETRIES})...{RESET}")
                 log(f"  {DIM}{sql_error[:120]}{RESET}")
                 t0 = time.time()
+                # Extract just the error message — strip any SQL fragments
+                err_msg = sql_error.split("\n")[0][:200]
+                retry_hint = (
+                    f"\n\nYour previous CRL patch compiled but produced invalid SQL at runtime. "
+                    f"The database error was: {err_msg}\n"
+                    f"This means your CRL entity definition has a logical error (wrong field name, "
+                    f"invalid date, bad join, etc). Write a completely new CRL patch — do NOT write SQL."
+                )
                 qr = run_query(
-                    description + f"\n\nPrevious attempt failed with SQL error: {sql_error}. Try a different approach.",
+                    description + retry_hint,
                     model_name, sources, entities, all_models_rl=ALL_MODELS_RL,
                 )
                 elapsed = time.time() - t0
