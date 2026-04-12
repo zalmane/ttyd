@@ -230,18 +230,43 @@ def execute_patch(plan_result: dict, con) -> None:
 
     log(f"{DIM}LLM ({model_name}): {elapsed:.1f}s, {qr.get('total_output_tokens', 0)} tok, {qr['attempts']} attempt(s){RESET}")
 
-    if qr["status"] == "compiled":
-        orig_ids = _get_entity_ids(crl)
-        new_crl_lines = _extract_new_entities(qr.get("entities", ""), orig_ids)
-        _last["crl"] = "\n".join(new_crl_lines) if new_crl_lines else qr.get("entities", "")
-        if new_crl_lines:
-            log(f"\n{DIM}CRL (new entities):{RESET}")
-            for line in new_crl_lines:
-                log(f"  {DIM}{line}{RESET}")
-        _run_new_output_entities(qr, orig_ids, con, model_id=model_name)
-        return
+    MAX_SQL_RETRIES = 2
 
-    # Show exactly what failed
+    for sql_attempt in range(1, MAX_SQL_RETRIES + 1):
+        if qr["status"] == "compiled":
+            orig_ids = _get_entity_ids(crl)
+            new_crl_lines = _extract_new_entities(qr.get("entities", ""), orig_ids)
+            _last["crl"] = "\n".join(new_crl_lines) if new_crl_lines else qr.get("entities", "")
+            if new_crl_lines:
+                log(f"\n{DIM}CRL (new entities):{RESET}")
+                for line in new_crl_lines:
+                    log(f"  {DIM}{line}{RESET}")
+
+            # Try running SQL — capture errors
+            sql_error = _run_new_output_entities(qr, orig_ids, con, model_id=model_name)
+            if sql_error is None:
+                return  # Success
+
+            # SQL failed — retry with a fresh LLM call
+            if sql_attempt < MAX_SQL_RETRIES:
+                log(f"\n{YELLOW}SQL error, retrying patch ({sql_attempt}/{MAX_SQL_RETRIES})...{RESET}")
+                log(f"  {DIM}{sql_error[:120]}{RESET}")
+                t0 = time.time()
+                qr = run_query(
+                    description + f"\n\nPrevious attempt failed with SQL error: {sql_error}. Try a different approach.",
+                    model_name, sources, entities, all_models_rl=ALL_MODELS_RL,
+                )
+                elapsed = time.time() - t0
+                log(f"{DIM}LLM ({model_name}): {elapsed:.1f}s, {qr.get('total_output_tokens', 0)} tok, {qr['attempts']} attempt(s){RESET}")
+                continue
+            else:
+                log(f"\n{RED}SQL error after {MAX_SQL_RETRIES} attempts:{RESET}")
+                log(f"  {RED}{sql_error}{RESET}")
+                return
+        else:
+            break
+
+    # Show exactly what failed (compilation error)
     log(f"\n{RED}Patch failed on model '{model_name}'{RESET}")
     errors = qr.get("last_errors", [])
     if errors:
@@ -283,7 +308,8 @@ def _extract_new_entities(entities_text: str, orig_ids: set[str]) -> list[str]:
     return result
 
 
-def _run_new_output_entities(qr: dict, orig_ids: set[str], con, model_id: str = None) -> None:
+def _run_new_output_entities(qr: dict, orig_ids: set[str], con, model_id: str = None) -> str | None:
+    """Run SQL for new output entities. Returns None on success, error string on failure."""
     cr = qr["compiler_result"]
     ms = qr["model_set"]
 
@@ -291,7 +317,6 @@ def _run_new_output_entities(qr: dict, orig_ids: set[str], con, model_id: str = 
     _last["compiler_result"] = cr
     _last["con"] = con
 
-    # Find the target model (the one that was patched)
     target_model = None
     for m in ms.models:
         if model_id and m.id == model_id:
@@ -310,14 +335,18 @@ def _run_new_output_entities(qr: dict, orig_ids: set[str], con, model_id: str = 
 
     sql_gen = cr.get_sql_generator()
     for ent in new_output:
-        _run_entity(sql_gen, target_model.id, ent, con)
+        error = _run_entity(sql_gen, target_model.id, ent, con)
+        if error:
+            return error
+    return None
 
 
 # Last query state
 _last = {"sql": None, "crl": None, "plan": None, "model_set": None, "compiler_result": None, "con": None}
 
 
-def _run_entity(sql_gen, model_id: str, ent, con) -> None:
+def _run_entity(sql_gen, model_id: str, ent, con) -> str | None:
+    """Run SQL for an entity. Returns None on success, error string on failure."""
     try:
         sql = sql_gen.generate_sql(FQN((model_id, ent.id)), dialect="duckdb")
         _last["sql"] = sql
@@ -329,8 +358,11 @@ def _run_entity(sql_gen, model_id: str, ent, con) -> None:
         cols = [d[0] for d in con.description]
         print(f"\n{BOLD}  Result:{RESET}")
         print(format_table(cols, rows))
+        return None
     except Exception as e:
-        print(f"\n  {RED}SQL Error: {e}{RESET}")
+        error_str = str(e)
+        log(f"\n{RED}SQL Error: {error_str[:200]}{RESET}")
+        return error_str
 
 
 # ---------------------------------------------------------------------------
