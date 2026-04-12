@@ -412,37 +412,56 @@ Follow these rules precisely — they define what "completed orders", "qualifyin
 Return ONLY the SQL query, no explanation."""
 
 
+MAX_SQL_COMPARE_RETRIES = 3
+
+
 def _run_direct_sql(question: str, con) -> dict:
-    """Generate SQL directly via LLM and run it. Returns result dict."""
+    """Generate SQL directly via LLM and run it. Retries on SQL errors."""
     import re
     t0 = time.time()
-    text, usage = _call_llm(
-        SQL_COMPARE_PROMPT.format(model_descriptions=CONCEPT_CATALOG_TEXT),
-        [{"role": "user", "content": question}],
-        max_tokens=800,
-    )
-    elapsed = round(time.time() - t0, 1)
-    out_tok = usage.get("output_tokens", 0)
+    total_out_tok = 0
+    messages = [{"role": "user", "content": question}]
+    system = SQL_COMPARE_PROMPT.format(model_descriptions=CONCEPT_CATALOG_TEXT)
 
-    # Extract SQL
-    m = re.search(r"```(?:sql)?\s*\n(.*?)```", text, re.DOTALL)
-    raw_sql = m.group(1).strip() if m else text.strip()
+    for attempt in range(1, MAX_SQL_COMPARE_RETRIES + 1):
+        text, usage = _call_llm(system, messages, max_tokens=800)
+        out_tok = usage.get("output_tokens", 0)
+        total_out_tok += out_tok
 
-    result = {"elapsed_s": elapsed, "output_tokens": out_tok, "sql": raw_sql}
+        # Extract SQL
+        m = re.search(r"```(?:sql)?\s*\n(.*?)```", text, re.DOTALL)
+        raw_sql = m.group(1).strip() if m else text.strip()
 
-    try:
-        rows = con.execute(raw_sql).fetchall()
-        cols = [d[0] for d in con.description]
-        result["rows"] = rows
-        result["cols"] = cols
-        result["status"] = "ok"
-    except Exception as e:
-        result["rows"] = []
-        result["cols"] = []
-        result["status"] = "error"
-        result["error"] = str(e).split("\n")[0][:150]
-
-    return result
+        try:
+            rows = con.execute(raw_sql).fetchall()
+            cols = [d[0] for d in con.description]
+            return {
+                "elapsed_s": round(time.time() - t0, 1),
+                "output_tokens": total_out_tok,
+                "sql": raw_sql,
+                "rows": rows,
+                "cols": cols,
+                "status": "ok",
+                "attempts": attempt,
+            }
+        except Exception as e:
+            err_msg = str(e).split("\n")[0][:200]
+            if attempt < MAX_SQL_COMPARE_RETRIES:
+                # Feed error back for retry
+                messages.append({"role": "assistant", "content": text})
+                messages.append({"role": "user", "content":
+                    f"SQL error: {err_msg}\nFix the SQL and return only the corrected query."})
+            else:
+                return {
+                    "elapsed_s": round(time.time() - t0, 1),
+                    "output_tokens": total_out_tok,
+                    "sql": raw_sql,
+                    "rows": [],
+                    "cols": [],
+                    "status": "error",
+                    "error": err_msg,
+                    "attempts": attempt,
+                }
 
 
 def ask(question: str, con) -> None:
@@ -478,12 +497,19 @@ def ask(question: str, con) -> None:
         log(f"\n{CYAN}{'─' * 50}{RESET}")
         log(f"{CYAN}[compare]{RESET} Generating direct SQL... {DIM}(LLM call){RESET}")
         sql_result = _run_direct_sql(question, con)
-        log(f"  {DIM}LLM call: {sql_result['elapsed_s']}s, {sql_result['output_tokens']} tok{RESET}")
+        attempts = sql_result.get("attempts", 1)
+        att_str = f", {attempts} attempts" if attempts > 1 else ""
+        log(f"  {DIM}LLM call: {sql_result['elapsed_s']}s, {sql_result['output_tokens']} tok{att_str}{RESET}")
 
         if sql_result["status"] == "error":
-            log(f"  {RED}SQL error: {sql_result['error']}{RESET}")
+            log(f"  {RED}SQL error (after {attempts} attempts): {sql_result['error']}{RESET}")
+            log(f"\n{DIM}SQL (failed):{RESET}")
+            for line in sql_result["sql"].split("\n"):
+                log(f"  {DIM}{line}{RESET}")
         else:
-            log(f"  {DIM}SQL: {sql_result['sql'][:120]}{'...' if len(sql_result['sql']) > 120 else ''}{RESET}")
+            log(f"\n{DIM}SQL:{RESET}")
+            for line in sql_result["sql"].split("\n"):
+                log(f"  {DIM}{line}{RESET}")
             if sql_result["rows"]:
                 print(f"\n{BOLD}  Direct SQL result:{RESET}")
                 print(format_table(sql_result["cols"], sql_result["rows"][:10]))
