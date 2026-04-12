@@ -223,72 +223,63 @@ def execute_patch(plan_result: dict, con) -> None:
 
     crl = MODELS_CRL[model_name]
     header, sources, entities = split_crl(crl)
-
-    t0 = time.time()
-    qr = run_query(description, model_name, sources, entities, all_models_rl=ALL_MODELS_RL)
-    elapsed = time.time() - t0
-
-    log(f"{DIM}LLM ({model_name}): {elapsed:.1f}s, {qr.get('total_output_tokens', 0)} tok, {qr['attempts']} attempt(s){RESET}")
-
     MAX_SQL_RETRIES = 2
+    current_description = description
 
     for sql_attempt in range(1, MAX_SQL_RETRIES + 1):
-        if qr["status"] == "compiled":
-            orig_ids = _get_entity_ids(crl)
-            new_crl_lines = _extract_new_entities(qr.get("entities", ""), orig_ids)
-            _last["crl"] = "\n".join(new_crl_lines) if new_crl_lines else qr.get("entities", "")
-            if new_crl_lines:
-                log(f"\n{DIM}CRL (new entities):{RESET}")
-                for line in new_crl_lines:
-                    log(f"  {DIM}{line}{RESET}")
+        # LLM call to generate CRL patch
+        t0 = time.time()
+        qr = run_query(current_description, model_name, sources, entities, all_models_rl=ALL_MODELS_RL)
+        elapsed = time.time() - t0
+        attempts = qr["attempts"]
+        tok = qr.get("total_output_tokens", 0)
 
-            # Try running SQL — capture errors
-            sql_error = _run_new_output_entities(qr, orig_ids, con, model_id=model_name)
-            if sql_error is None:
-                return  # Success
-
-            # SQL failed — retry with a fresh LLM call
-            if sql_attempt < MAX_SQL_RETRIES:
-                log(f"\n{YELLOW}SQL error, retrying patch ({sql_attempt}/{MAX_SQL_RETRIES})...{RESET}")
-                log(f"  {DIM}{sql_error[:120]}{RESET}")
-                t0 = time.time()
-                # Extract just the error message — strip any SQL fragments
-                err_msg = sql_error.split("\n")[0][:200]
-                retry_hint = (
-                    f"\n\nYour previous CRL patch compiled but produced invalid SQL at runtime. "
-                    f"The database error was: {err_msg}\n"
-                    f"This means your CRL entity definition has a logical error (wrong field name, "
-                    f"invalid date, bad join, etc). Write a completely new CRL patch — do NOT write SQL."
-                )
-                qr = run_query(
-                    description + retry_hint,
-                    model_name, sources, entities, all_models_rl=ALL_MODELS_RL,
-                )
-                elapsed = time.time() - t0
-                log(f"{DIM}LLM ({model_name}): {elapsed:.1f}s, {qr.get('total_output_tokens', 0)} tok, {qr['attempts']} attempt(s){RESET}")
-                continue
-            else:
-                log(f"\n{RED}SQL error after {MAX_SQL_RETRIES} attempts:{RESET}")
-                log(f"  {RED}{sql_error}{RESET}")
-                return
+        if attempts == 1:
+            log(f"  {DIM}LLM call: {elapsed:.1f}s, {tok} tok, compiled first try{RESET}")
         else:
-            break
+            log(f"  {DIM}LLM call: {elapsed:.1f}s, {tok} tok, {attempts} compile retries (errors on first {attempts-1}){RESET}")
 
-    # Show exactly what failed (compilation error)
-    log(f"\n{RED}Patch failed on model '{model_name}'{RESET}")
-    errors = qr.get("last_errors", [])
-    if errors:
-        log(f"{RED}Compilation errors:{RESET}")
-        for e in errors:
-            log(f"  {RED}{e}{RESET}")
+        # Compilation failed — show errors and stop
+        if qr["status"] != "compiled":
+            log(f"\n{RED}Compilation failed on model '{model_name}'{RESET}")
+            for e in qr.get("last_errors", []):
+                log(f"  {RED}{e}{RESET}")
+            entities_out = qr.get("entities", "")
+            if entities_out:
+                log(f"\n{YELLOW}LLM output:{RESET}")
+                for line in entities_out.split("\n"):
+                    if line.strip():
+                        log(f"  {DIM}{line}{RESET}")
+            return
 
-    # Show what the LLM produced
-    entities_out = qr.get("entities", "")
-    if entities_out:
-        log(f"\n{YELLOW}LLM output (failed to compile):{RESET}")
-        for line in entities_out.split("\n"):
-            if line.strip():
+        # Compilation succeeded — show new CRL
+        orig_ids = _get_entity_ids(crl)
+        new_crl_lines = _extract_new_entities(qr.get("entities", ""), orig_ids)
+        _last["crl"] = "\n".join(new_crl_lines) if new_crl_lines else qr.get("entities", "")
+        if new_crl_lines:
+            log(f"\n{DIM}CRL (new entities):{RESET}")
+            for line in new_crl_lines:
                 log(f"  {DIM}{line}{RESET}")
+
+        # Try running SQL
+        sql_error = _run_new_output_entities(qr, orig_ids, con, model_id=model_name)
+        if sql_error is None:
+            return  # Success
+
+        # SQL failed
+        if sql_attempt < MAX_SQL_RETRIES:
+            err_msg = sql_error.split("\n")[0][:200]
+            log(f"\n{YELLOW}SQL runtime error — requesting new CRL patch...{RESET}")
+            log(f"  {DIM}Error: {err_msg}{RESET}")
+            current_description = (
+                description
+                + f"\n\nPrevious CRL patch compiled but produced invalid SQL. "
+                f"Database error: {err_msg}\n"
+                f"The CRL entity has a logical error. Write a new CRL patch — do NOT write SQL."
+            )
+        else:
+            log(f"\n{RED}SQL error after {MAX_SQL_RETRIES} attempts:{RESET}")
+            log(f"  {RED}{sql_error.split(chr(10))[0][:200]}{RESET}")
 
 
 def _get_entity_ids(crl_text: str) -> set[str]:
@@ -403,7 +394,8 @@ def ask(question: str, con) -> None:
     t_total = time.time()
     print(f"\n{BOLD}  Q: {question}{RESET}")
 
-    log(f"{CYAN}[plan]{RESET} Analyzing question...")
+    # Step 1: Planner LLM call — decides which model and approach
+    log(f"{CYAN}[1/2 planner]{RESET} Choosing model... {DIM}(LLM call){RESET}")
     p = plan(question)
     _last["plan"] = p
     approach = p.get("approach", "patch")
@@ -411,16 +403,17 @@ def ask(question: str, con) -> None:
     reasoning = p.get("reasoning", "")
 
     approach_color = GREEN if approach == "reuse" else YELLOW
-    log(f"{CYAN}[plan]{RESET} {approach_color}{approach}{RESET}"
+    log(f"{CYAN}[1/2 planner]{RESET} {approach_color}{approach}{RESET}"
         + (f" -> {BOLD}{model}{RESET}" if model else "")
         + f" {DIM}({p['_time']}s, {p['_tokens']} tok){RESET}")
-    log(f"{DIM}{reasoning}{RESET}")
+    log(f"  {DIM}{reasoning}{RESET}")
 
+    # Step 2: Execute — either instant reuse or LLM patch
     if approach == "reuse":
-        log(f"{CYAN}[exec]{RESET} Reusing existing entity...")
+        log(f"{CYAN}[2/2 execute]{RESET} Compiling existing entity... {DIM}(no LLM call){RESET}")
         execute_reuse(p, con)
     else:
-        log(f"{CYAN}[exec]{RESET} Patching with LLM...")
+        log(f"{CYAN}[2/2 execute]{RESET} Generating CRL patch... {DIM}(LLM call){RESET}")
         execute_patch(p, con)
 
     elapsed = time.time() - t_total
