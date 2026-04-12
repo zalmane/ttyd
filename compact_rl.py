@@ -141,6 +141,11 @@ def _emit_entity(elem: Element) -> list[str]:
     ent: Entity = elem.element
     gen = ent.generator
 
+    lines_prefix = []
+    # Emit entity description as CRL comment if present
+    if elem.description:
+        lines_prefix.append(f"# {elem.description}")
+
     parts = [f"ent {elem.id}"]
 
     if isinstance(gen, EntityGenerator):
@@ -171,14 +176,23 @@ def _emit_entity(elem: Element) -> list[str]:
     parts.append("{")
 
     header = " ".join(parts)
-    lines = [header]
+    lines = lines_prefix + [header]
 
     # Windows
     for win in ent.windows:
         lines.append(f"  {_emit_window(win)}")
     # Properties
     for prop in ent.properties:
-        lines.append(f"  {_emit_property(prop)}")
+        prop_str = _emit_property(prop)
+        # If property has a comment prefix, split into separate lines
+        if prop_str.startswith("# "):
+            comment_end = prop_str.index("\n") if "\n" in prop_str else len(prop_str)
+            # Find where the actual property definition starts (after comment lines)
+            prop_lines = prop_str.split("\n")
+            for pl in prop_lines:
+                lines.append(f"  {pl}")
+        else:
+            lines.append(f"  {prop_str}")
     # Relations
     for rel in ent.relations:
         lines.append(f"  {_emit_relation(rel)}")
@@ -189,6 +203,11 @@ def _emit_entity(elem: Element) -> list[str]:
 def _emit_property(prop: Property) -> str:
     sf = prop.schema_field
     parts: list[str] = []
+    # Add description as comment line if non-trivial
+    comment = ""
+    desc = sf.description.strip() if sf.description else ""
+    if desc and desc != "" and desc != sf.display_name:
+        comment = f"# {desc}\n"
     for ann in sf.annotations:
         parts.append(f"@{_annotation_to_crl(ann)}")
     type_str = _type_to_crl(sf.type) if sf.type else "auto"
@@ -199,7 +218,7 @@ def _emit_property(prop: Property) -> str:
             and prop.expression.exp.value[0] == "base"):
         expr_str = f".{prop.expression.exp.value[1]}"
     parts.append(f"{sf.id}:{type_str} = {expr_str}")
-    return " ".join(parts)
+    return comment + " ".join(parts)
 
 
 def _emit_relation(rel: Relation) -> str:
