@@ -78,11 +78,12 @@ Annotations: @key @dim @met (short for @dimension, @metric)
 2. Relations MUST have `on` clause: `on base.X == target.Y` (use `on 1 == 1` for cross-join)
 3. Grouping: `group base.field1, base.field2 as grp` — fields MUST be direct properties of the base entity (not relation traversals). After grouping, access non-grouped fields via aggregation: `sum(base.grp.field)`
 4. To aggregate ALL rows, use `group (1) as dummy as all_rows` on an ENTITY (not a source). If the base is a source, first create an intermediate entity, then group on that.
-5. Date filtering: use `year()`, `month()`, `day()` functions — NOT string comparison. Examples:
-   - `filter year(base.start_date) >= 2025` (dates in/after 2025)
-   - `filter year(base.end_date) == 2025` (expiring in 2025)
-   - `filter year(base.order_date) == 2025 and month(base.order_date) == 3` (March 2025)
-   NEVER use `date("...")` — it does not exist. NEVER compare dates to strings.
+5. Date filtering: use `or_default(parse_date("YYYY-MM-DD"), base.some_date)` to create date literals. Examples:
+   - `filter base.start_date <= or_default(parse_date("2025-02-28"), base.start_date)` (started before end of Feb)
+   - `filter base.start_date <= or_default(parse_date("2025-02-28"), base.start_date) and base.end_date >= or_default(parse_date("2025-02-01"), base.end_date)` (active during Feb 2025)
+   For simple year/month checks, `year()` and `month()` also work: `filter year(base.order_date) == 2025 and month(base.order_date) == 3`
+   But for date RANGE overlap (was a subscription active during a month?), you MUST use parse_date, not year()/month().
+   NEVER compare dates to bare strings. NEVER use `date("...")` — use `parse_date("...")`.
 6. Each new entity references MODEL.ENTITY_ID where MODEL is the model name
 
 ## Output Format
