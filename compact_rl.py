@@ -345,8 +345,18 @@ def _parse_source(lines: list[str], start: int, model_id: str) -> tuple[Element,
 
 
 def _parse_entity(lines: list[str], start: int, model_id: str) -> tuple[Element, int]:
-    # Collect header — may span lines if indented continuation
+    # Collect header — may span multiple lines until we find the opening {
     header_line = lines[start].strip()
+    i = start + 1
+
+    # If header doesn't end with {, gather continuation lines
+    while not header_line.rstrip().endswith("{") and i < len(lines):
+        next_line = lines[i].strip()
+        if not next_line:
+            i += 1
+            continue
+        header_line = header_line + " " + next_line
+        i += 1
 
     # Parse entity header: ent <id> from <base> [clauses...] [output] {
     m = re.match(r"^ent\s+(\w+)\s+(.+)$", header_line)
@@ -368,11 +378,10 @@ def _parse_entity(lines: list[str], start: int, model_id: str) -> tuple[Element,
     # Parse generator clause
     generator = _parse_generator_clause(rest)
 
-    # Parse body: properties, relations, windows
+    # Parse body: properties, relations, windows (i already past header)
     properties: list[Property] = []
     relations: list[Relation] = []
     windows: list[Window] = []
-    i = start + 1
     while i < len(lines):
         inner = lines[i].strip()
         if inner == "}" or (inner.startswith("}") and not inner.startswith("}}")):
