@@ -263,10 +263,12 @@ def execute_patch(plan_result: dict, con) -> None:
             for line in new_crl_lines:
                 log(f"  {DIM}{line}{RESET}")
 
-        # Try running SQL
-        sql_error = _run_new_output_entities(qr, orig_ids, con, model_id=model_name)
+        # Try running SQL silently first
+        sql_error = _run_new_output_entities(qr, orig_ids, con, model_id=model_name, show_sql=False)
         if sql_error is None:
-            return  # Success
+            # Success — now show the full output
+            _run_new_output_entities(qr, orig_ids, con, model_id=model_name, show_sql=True)
+            return
 
         # SQL failed
         if sql_attempt < MAX_SQL_RETRIES:
@@ -309,7 +311,7 @@ def _extract_new_entities(entities_text: str, orig_ids: set[str]) -> list[str]:
     return result
 
 
-def _run_new_output_entities(qr: dict, orig_ids: set[str], con, model_id: str = None) -> str | None:
+def _run_new_output_entities(qr: dict, orig_ids: set[str], con, model_id: str = None, show_sql: bool = True) -> str | None:
     """Run SQL for new output entities. Returns None on success, error string on failure."""
     cr = qr["compiler_result"]
     ms = qr["model_set"]
@@ -336,7 +338,7 @@ def _run_new_output_entities(qr: dict, orig_ids: set[str], con, model_id: str = 
 
     sql_gen = cr.get_sql_generator()
     for ent in new_output:
-        error = _run_entity(sql_gen, target_model.id, ent, con)
+        error = _run_entity(sql_gen, target_model.id, ent, con, show_sql=show_sql)
         if error:
             return error
     return None
@@ -346,23 +348,26 @@ def _run_new_output_entities(qr: dict, orig_ids: set[str], con, model_id: str = 
 _last = {"sql": None, "crl": None, "plan": None, "model_set": None, "compiler_result": None, "con": None}
 
 
-def _run_entity(sql_gen, model_id: str, ent, con) -> str | None:
+def _run_entity(sql_gen, model_id: str, ent, con, show_sql: bool = True) -> str | None:
     """Run SQL for an entity. Returns None on success, error string on failure."""
     try:
         sql = sql_gen.generate_sql(FQN((model_id, ent.id)), dialect="duckdb")
         _last["sql"] = sql
-        log(f"\n{DIM}SQL ({ent.id}):{RESET}")
-        for line in sql.split("\n"):
-            log(f"  {DIM}{line}{RESET}")
+        if show_sql:
+            log(f"\n{DIM}SQL ({ent.id}):{RESET}")
+            for line in sql.split("\n"):
+                log(f"  {DIM}{line}{RESET}")
 
         rows = con.execute(sql).fetchall()
         cols = [d[0] for d in con.description]
-        print(f"\n{BOLD}  Result:{RESET}")
-        print(format_table(cols, rows))
+        if show_sql:
+            print(f"\n{BOLD}  Result:{RESET}")
+            print(format_table(cols, rows))
         return None
     except Exception as e:
         error_str = str(e)
-        log(f"\n{RED}SQL Error: {error_str[:200]}{RESET}")
+        if show_sql:
+            log(f"\n{RED}SQL Error: {error_str[:200]}{RESET}")
         return error_str
 
 
