@@ -49,6 +49,7 @@ def _call_llm(system: str, messages: list[dict], max_tokens: int = MAX_TOKENS, m
     body = {
         "anthropic_version": "bedrock-2023-05-31",
         "max_tokens": max_tokens,
+        "temperature": 0,
         "system": system,
         "messages": messages,
     }
