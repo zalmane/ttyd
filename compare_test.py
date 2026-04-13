@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Run 20 questions in comparison mode using the same code as the CLI /compare.
+"""Run 50 questions x 3 runs each: CRL vs SQL with stability measurement.
 
-Outputs a summary table showing timing, tokens, results, and match status.
+Each question runs 3 times. Reports:
+- Per-question: match/differ, CRL vs SQL values, consistency across runs
+- Summary: total matches, differs, stability scores
 """
 
 from __future__ import annotations
@@ -14,54 +16,90 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import duckdb
 from setup_db import create_db
-
-# Import everything from ask.py — same code path as interactive CLI
 import ask
 from ask import (
     plan, execute_reuse, execute_patch, _run_direct_sql, _last,
     MODELS_CRL, ALL_MODELS_RL, CONCEPT_CATALOG_TEXT,
-    split_crl, run_query, format_table,
-    log, DIM, BOLD, CYAN, GREEN, YELLOW, RED, RESET,
+    split_crl, run_query, format_table, _get_entity_ids, _run_new_output_entities,
+    DIM, BOLD, CYAN, GREEN, YELLOW, RED, RESET,
 )
+from compact_rl import compact_to_modelset
+
+RUNS_PER_QUESTION = 3
 
 QUESTIONS = [
+    # --- Simple aggregations ---
     "What is our total ARR?",
+    "Total revenue across all orders",
+    "How many subscriptions are active?",
+    "How many completed orders do we have?",
+    "What is total MRR?",
+
+    # --- Group by dimension ---
     "ARR by segment",
-    "ARR excluding EMEA",
-    "Total revenue in Q1 2025",
     "Revenue by product category",
-    "Top 5 customers by total spend",
+    "Revenue by region",
+    "ARR by product category",
+    "Order count by segment",
+
+    # --- Filters ---
+    "ARR excluding EMEA",
+    "Revenue from US only",
+    "ARR from Mid-Market customers",
+    "Revenue from orders above 2000",
+    "How many Enterprise customers have active subscriptions?",
+
+    # --- Governed concepts (need policy logic) ---
     "How many Strategic deals were there?",
     "Total revenue from Small orders",
+    "Revenue from Transactional deals only",
+    "Average deal size for Strategic deals",
+    "How many Growth deals in 2025?",
+
+    # --- Discount / effective MRR (complex policy) ---
+    "Average discount percentage across all subscriptions",
+    "Which customer gets the highest discount?",
+    "ARR from subscriptions with discount above 15%",
+    "Total effective MRR for Enterprise segment",
+    "List all subscriptions where discount is zero",
+
+    # --- Date filtering (parse_date overlap) ---
+    "Total ARR in February 2025",
+    "ARR in January 2025 by segment",
+    "Revenue in Q4 2024",
+    "Revenue in August 2024 by region",
+    "How many orders in December 2024?",
+
+    # --- Top N / ranking ---
+    "Top 3 customers by ARR",
+    "Top 5 customers by total spend",
+    "Largest single order amount",
+    "Customer with the most orders",
+    "Bottom 3 regions by revenue",
+
+    # --- Cross-concept ---
     "Which customer has the highest ARR?",
-    "Average discount percentage by segment",
     "Revenue in March 2025 by region",
     "How many unique customers placed orders in 2025?",
     "ARR from Platform products only",
-    "Total ARR in February 2025",
-    "Which region has the highest revenue?",
     "Average order size for Enterprise customers",
-    "How many subscriptions are active?",
+
+    # --- Time comparison ---
     "Revenue growth: Q4 2024 vs Q1 2025",
+    "Was January 2025 revenue higher than December 2024?",
+    "Which month had the highest revenue?",
+    "MRR trend: list MRR for each month a subscription started",
+
+    # --- NRR / MRR movements (derived chain) ---
     "NRR last month",
-    "Customers with ARR above 5000",
+    "How many customers churned?",
+    "Total expansion MRR",
+    "Which customers are new in the MRR movements?",
+
+    # --- Tricky / ambiguous ---
+    "Which customers were active in 2025?",
+    "Show me the first order we ever got",
 ]
-
-
-def extract_first_value(con):
-    """Extract a comparable value from _last['sql'] result."""
-    sql = _last.get("sql")
-    if not sql:
-        return None
-    try:
-        rows = con.execute(sql).fetchall()
-        if not rows:
-            return None
-        if len(rows) == 1 and len(rows[0]) == 1:
-            return rows[0][0]
-        return rows
-    except Exception:
-        return None
 
 
 def fmt_val(v) -> str:
@@ -72,15 +110,88 @@ def fmt_val(v) -> str:
     if isinstance(v, int):
         return str(v)
     if isinstance(v, list):
-        return f"{len(v)} rows"
-    return str(v)[:15]
+        return f"{len(v)}r"
+    return str(v)[:12]
+
+
+def normalize_val(v):
+    """Normalize value for consistency comparison."""
+    if v is None:
+        return None
+    if isinstance(v, float):
+        return round(v, 1)
+    if isinstance(v, int):
+        return v
+    if isinstance(v, list):
+        return len(v)
+    return str(v)
+
+
+def run_crl_once(question, con, db_path):
+    """Run CRL approach once. Returns (value, elapsed, tokens)."""
+    import json
+    _last["sql"] = None
+    t0 = time.time()
+
+    p = plan(question)
+    model_name = p.get("model")
+    approach = p.get("approach", "patch")
+
+    if approach == "reuse" and model_name:
+        execute_reuse(p, con)
+        val = _extract_value(con)
+        return val, round(time.time() - t0, 1), 0
+
+    if model_name and model_name in MODELS_CRL:
+        crl = MODELS_CRL[model_name]
+        header, sources, entities = split_crl(crl)
+        qr = run_query(p.get("description", question), model_name, sources, entities, all_models_rl=ALL_MODELS_RL)
+        tok = qr.get("total_output_tokens", 0)
+        if qr["status"] == "compiled":
+            orig_ids = _get_entity_ids(crl)
+            _run_new_output_entities(qr, orig_ids, con, model_id=model_name, show_sql=False)
+            val = _extract_value(con)
+            return val, round(time.time() - t0, 1), tok
+
+    return None, round(time.time() - t0, 1), 0
+
+
+def run_sql_once(question, con):
+    """Run direct SQL once. Returns (value, elapsed, tokens)."""
+    r = _run_direct_sql(question, con)
+    val = None
+    if r["status"] == "ok" and r["rows"]:
+        if len(r["rows"]) == 1 and len(r["rows"][0]) == 1:
+            val = r["rows"][0][0]
+        else:
+            val = r["rows"]
+    return val, r["elapsed_s"], r["output_tokens"]
+
+
+def _extract_value(con):
+    sql = _last.get("sql")
+    if not sql:
+        return None
+    try:
+        rows = con.execute(sql).fetchall()
+        if not rows:
+            return None
+        if len(rows) == 1 and len(rows[0]) == 1:
+            return rows[0][0]
+        return rows
+    except:
+        return None
 
 
 def values_match(v1, v2) -> str:
     if v1 is None or v2 is None:
         return "n/a"
-    if isinstance(v1, (int, float)) and isinstance(v2, (int, float)):
-        return "match" if abs(float(v1) - float(v2)) < 1 else "differ"
+    n1, n2 = normalize_val(v1), normalize_val(v2)
+    if isinstance(n1, (int, float)) and isinstance(n2, (int, float)):
+        return "match" if abs(float(n1) - float(n2)) < 1 else "differ"
+    if n1 == n2:
+        return "match"
+    # rows comparison
     if isinstance(v1, list) and isinstance(v2, list):
         def nums(rows):
             s = set()
@@ -89,11 +200,10 @@ def values_match(v1, v2) -> str:
                     if isinstance(v, (int, float)):
                         s.add(round(float(v), 1))
             return s
-        n1, n2 = nums(v1), nums(v2)
-        if n1 and n2:
-            overlap = n1 & n2
-            return "match" if len(overlap) >= min(len(n1), len(n2)) * 0.5 else "differ"
-    # scalar vs rows — try to find the scalar in the rows
+        n1s, n2s = nums(v1), nums(v2)
+        if n1s and n2s:
+            overlap = n1s & n2s
+            return "match" if len(overlap) >= min(len(n1s), len(n2s)) * 0.5 else "differ"
     if isinstance(v1, (int, float)) and isinstance(v2, list):
         for r in v2:
             for v in r:
@@ -107,148 +217,118 @@ def values_match(v1, v2) -> str:
     return "n/a"
 
 
-def run_one_crl(question: str, con) -> dict:
-    """Run CRL approach using the same ask.py code path. Returns result dict."""
-    import json
-    _last["sql"] = None
-    t0 = time.time()
-
-    # Plan (same as ask.py)
-    p = plan(question)
-    model_name = p.get("model")
-    approach = p.get("approach", "patch")
-
-    if approach == "reuse" and model_name:
-        execute_reuse(p, con)
-    elif model_name and model_name in MODELS_CRL:
-        # Inline patch without the print noise
-        crl = MODELS_CRL[model_name]
-        header, sources, entities = split_crl(crl)
-        qr = run_query(p.get("description", question), model_name, sources, entities, all_models_rl=ALL_MODELS_RL)
-        if qr["status"] == "compiled":
-            from ask import _get_entity_ids, _run_new_output_entities
-            orig_ids = _get_entity_ids(crl)
-            _run_new_output_entities(qr, orig_ids, con, model_id=model_name, show_sql=False)
-            # Now re-run with show_sql to populate _last["sql"]
-            if _last.get("sql") is None:
-                _run_new_output_entities(qr, orig_ids, con, model_id=model_name, show_sql=False)
-        else:
-            elapsed = round(time.time() - t0, 1)
-            return {"status": "fail", "elapsed_s": elapsed, "output_tokens": qr.get("total_output_tokens", 0), "value": None}
-
-    elapsed = round(time.time() - t0, 1)
-    value = extract_first_value(con)
-    tok = 0  # hard to get from this path
-    return {"status": "ok" if value is not None else "fail", "elapsed_s": elapsed, "output_tokens": tok, "value": value}
+def consistency(vals):
+    """Return consistency score: 'stable', 'unstable', or 'all_fail'."""
+    normalized = [normalize_val(v) for v in vals]
+    non_none = [v for v in normalized if v is not None]
+    if not non_none:
+        return "all_fail"
+    if len(set(str(v) for v in non_none)) == 1 and len(non_none) == len(vals):
+        return "stable"
+    if len(non_none) < len(vals):
+        return "flaky"  # some runs fail
+    return "unstable"  # different values across runs
 
 
 def main():
-    db_path = Path(__file__).parent / "demo.db"
-    if not db_path.exists():
+    db_path = str(Path(__file__).parent / "demo.db")
+    if not Path(db_path).exists():
         create_db(db_path)
-    con = duckdb.connect(str(db_path), read_only=True)
+    con = duckdb.connect(db_path, read_only=True)
 
     n = len(QUESTIONS)
     results = []
 
-    # Header
-    print(f"\n{BOLD}Comparing CRL vs Direct SQL — {n} questions{RESET}\n")
+    print(f"\n{BOLD}CRL vs SQL — {n} questions x {RUNS_PER_QUESTION} runs each{RESET}\n")
 
     for i, q in enumerate(QUESTIONS):
         print(f"{CYAN}[{i+1}/{n}]{RESET} {BOLD}{q}{RESET}")
 
-        # CRL approach (silent — no SQL/result output)
-        sys.stdout.write(f"  CRL: ")
-        sys.stdout.flush()
+        crl_vals, crl_times, crl_toks = [], [], []
+        sql_vals, sql_times, sql_toks = [], [], []
 
-        _last["sql"] = None
-        t0 = time.time()
-        p = plan(q)
-        model_name = p.get("model")
-        crl_value = None
-        crl_tok = 0
+        for run in range(RUNS_PER_QUESTION):
+            cv, ct, ctok = run_crl_once(q, con, db_path)
+            sv, st, stok = run_sql_once(q, con)
+            crl_vals.append(cv); crl_times.append(ct); crl_toks.append(ctok)
+            sql_vals.append(sv); sql_times.append(st); sql_toks.append(stok)
+            sys.stdout.write(".")
+            sys.stdout.flush()
 
-        if p.get("approach") == "reuse" and model_name:
-            execute_reuse(p, con)
-            crl_value = extract_first_value(con)
-        elif model_name and model_name in MODELS_CRL:
-            from ask import _get_entity_ids, _run_new_output_entities
-            crl = MODELS_CRL[model_name]
-            header, sources, entities = split_crl(crl)
-            qr = run_query(p.get("description", q), model_name, sources, entities, all_models_rl=ALL_MODELS_RL)
-            crl_tok = qr.get("total_output_tokens", 0)
-            if qr["status"] == "compiled":
-                orig_ids = _get_entity_ids(crl)
-                _run_new_output_entities(qr, orig_ids, con, model_id=model_name, show_sql=False)
-                crl_value = extract_first_value(con)
+        crl_con = consistency(crl_vals)
+        sql_con = consistency(sql_vals)
 
-        crl_elapsed = round(time.time() - t0, 1)
-        crl_status = "ok" if crl_value is not None else "FAIL"
-        print(f"{crl_elapsed}s, {crl_tok} tok → {fmt_val(crl_value)}  {'✓' if crl_status == 'ok' else '✗'}")
+        # Use first non-None value as representative
+        crl_rep = next((v for v in crl_vals if v is not None), None)
+        sql_rep = next((v for v in sql_vals if v is not None), None)
+        match = values_match(crl_rep, sql_rep)
 
-        # Direct SQL (same as /compare in ask.py)
-        sys.stdout.write(f"  SQL: ")
-        sys.stdout.flush()
+        crl_avg_t = sum(crl_times) / len(crl_times)
+        sql_avg_t = sum(sql_times) / len(sql_times)
+        crl_ok = sum(1 for v in crl_vals if v is not None)
+        sql_ok = sum(1 for v in sql_vals if v is not None)
 
-        sql_r = _run_direct_sql(q, con)
-        sql_value = None
-        if sql_r["status"] == "ok" and sql_r["rows"]:
-            if len(sql_r["rows"]) == 1 and len(sql_r["rows"][0]) == 1:
-                sql_value = sql_r["rows"][0][0]
-            else:
-                sql_value = sql_r["rows"]
-        sql_status = "ok" if sql_value is not None else "FAIL"
-        print(f"{sql_r['elapsed_s']}s, {sql_r['output_tokens']} tok → {fmt_val(sql_value)}  {'✓' if sql_status == 'ok' else '✗'}")
+        match_sym = f"{GREEN}={RESET}" if match == "match" else f"{RED}X{RESET}" if match == "differ" else f"{DIM}?{RESET}"
+        crl_con_sym = f"{GREEN}S{RESET}" if crl_con == "stable" else f"{YELLOW}F{RESET}" if crl_con == "flaky" else f"{RED}U{RESET}" if crl_con == "unstable" else f"{DIM}-{RESET}"
+        sql_con_sym = f"{GREEN}S{RESET}" if sql_con == "stable" else f"{YELLOW}F{RESET}" if sql_con == "flaky" else f"{RED}U{RESET}" if sql_con == "unstable" else f"{DIM}-{RESET}"
 
-        # Match
-        match = values_match(crl_value, sql_value)
-        if match == "match":
-            print(f"  {GREEN}→ MATCH{RESET}")
-        elif match == "differ":
-            print(f"  {RED}→ DIFFER: CRL={fmt_val(crl_value)}, SQL={fmt_val(sql_value)}{RESET}")
-        else:
-            reason = ""
-            if crl_status == "FAIL" and sql_status == "FAIL":
-                reason = " (both failed)"
-            elif crl_status == "FAIL":
-                reason = " (CRL failed)"
-            elif sql_status == "FAIL":
-                reason = " (SQL failed)"
-            print(f"  {DIM}→ n/a{reason}{RESET}")
+        print(f" CRL:{crl_avg_t:>5.1f}s {crl_ok}/{RUNS_PER_QUESTION} {fmt_val(crl_rep):>10s} {crl_con_sym}  SQL:{sql_avg_t:>5.1f}s {sql_ok}/{RUNS_PER_QUESTION} {fmt_val(sql_rep):>10s} {sql_con_sym}  {match_sym}")
 
-        results.append({"q": q, "crl_t": crl_elapsed, "crl_tok": crl_tok, "crl_val": crl_value,
-                         "sql_t": sql_r["elapsed_s"], "sql_tok": sql_r["output_tokens"], "sql_val": sql_value,
-                         "match": match})
-        print()
+        results.append({
+            "q": q, "match": match,
+            "crl_vals": crl_vals, "crl_times": crl_times, "crl_con": crl_con, "crl_rep": crl_rep, "crl_avg_t": crl_avg_t, "crl_ok": crl_ok,
+            "sql_vals": sql_vals, "sql_times": sql_times, "sql_con": sql_con, "sql_rep": sql_rep, "sql_avg_t": sql_avg_t, "sql_ok": sql_ok,
+        })
 
     # Summary table
-    print(f"\n{BOLD}{'=' * 100}{RESET}")
-    print(f"{BOLD}{'#':>2} {'Question':<42s} {'CRL':>6s} {'SQL':>6s} {'CRL val':>12s} {'SQL val':>12s} {'':>7s}{RESET}")
-    print(f"{'-' * 100}")
+    print(f"\n{BOLD}{'=' * 115}{RESET}")
+    print(f"{BOLD}{'#':>2} {'Question':<42s} {'CRL':>5s} {'ok':>4s} {'con':>3s} {'val':>10s}  {'SQL':>5s} {'ok':>4s} {'con':>3s} {'val':>10s} {'':>3s}{RESET}")
+    print(f"{'-' * 115}")
 
     for i, r in enumerate(results):
-        match_sym = f"{GREEN}={RESET}" if r["match"] == "match" else f"{RED}X{RESET}" if r["match"] == "differ" else f"{DIM}?{RESET}"
-        print(f"{i+1:>2} {r['q']:<42s} {r['crl_t']:>5.1f}s {r['sql_t']:>5.1f}s {fmt_val(r['crl_val']):>12s} {fmt_val(r['sql_val']):>12s} {match_sym:>7s}")
+        match_sym = "=" if r["match"] == "match" else "X" if r["match"] == "differ" else "?"
+        crl_c = "S" if r["crl_con"] == "stable" else "F" if r["crl_con"] == "flaky" else "U" if r["crl_con"] == "unstable" else "-"
+        sql_c = "S" if r["sql_con"] == "stable" else "F" if r["sql_con"] == "flaky" else "U" if r["sql_con"] == "unstable" else "-"
+        print(f"{i+1:>2} {r['q']:<42s} {r['crl_avg_t']:>4.1f}s {r['crl_ok']:>1d}/{RUNS_PER_QUESTION}  {crl_c:>1s} {fmt_val(r['crl_rep']):>10s}  {r['sql_avg_t']:>4.1f}s {r['sql_ok']:>1d}/{RUNS_PER_QUESTION}  {sql_c:>1s} {fmt_val(r['sql_rep']):>10s}  {match_sym:>1s}")
 
-    print(f"{'-' * 100}")
+    print(f"{'-' * 115}")
 
-    crl_ok = sum(1 for r in results if r["crl_val"] is not None)
-    sql_ok = sum(1 for r in results if r["sql_val"] is not None)
+    # Aggregates
+    crl_total_ok = sum(r["crl_ok"] for r in results)
+    sql_total_ok = sum(r["sql_ok"] for r in results)
+    crl_stable = sum(1 for r in results if r["crl_con"] == "stable")
+    sql_stable = sum(1 for r in results if r["sql_con"] == "stable")
+    crl_flaky = sum(1 for r in results if r["crl_con"] == "flaky")
+    sql_flaky = sum(1 for r in results if r["sql_con"] == "flaky")
+    crl_unstable = sum(1 for r in results if r["crl_con"] == "unstable")
+    sql_unstable = sum(1 for r in results if r["sql_con"] == "unstable")
     matches = sum(1 for r in results if r["match"] == "match")
     differs = sum(1 for r in results if r["match"] == "differ")
-    crl_total_t = sum(r["crl_t"] for r in results)
-    sql_total_t = sum(r["sql_t"] for r in results)
+    crl_total_t = sum(r["crl_avg_t"] for r in results)
+    sql_total_t = sum(r["sql_avg_t"] for r in results)
 
     print(f"\n{BOLD}Summary:{RESET}")
-    print(f"  CRL:  {crl_ok}/{n} succeeded, {crl_total_t:.1f}s total")
-    print(f"  SQL:  {sql_ok}/{n} succeeded, {sql_total_t:.1f}s total")
+    print(f"  CRL: {crl_total_ok}/{n*RUNS_PER_QUESTION} runs succeeded, {crl_total_t:.0f}s avg total")
+    print(f"       Stability: {GREEN}{crl_stable} stable{RESET}, {YELLOW}{crl_flaky} flaky{RESET}, {RED}{crl_unstable} unstable{RESET}, {n - crl_stable - crl_flaky - crl_unstable} all_fail")
+    print(f"  SQL: {sql_total_ok}/{n*RUNS_PER_QUESTION} runs succeeded, {sql_total_t:.0f}s avg total")
+    print(f"       Stability: {GREEN}{sql_stable} stable{RESET}, {YELLOW}{sql_flaky} flaky{RESET}, {RED}{sql_unstable} unstable{RESET}, {n - sql_stable - sql_flaky - sql_unstable} all_fail")
     print(f"  {GREEN}Match: {matches}{RESET}  {RED}Differ: {differs}{RESET}  N/A: {n - matches - differs}")
 
     if differs > 0:
         print(f"\n{RED}  Differing results:{RESET}")
         for r in results:
             if r["match"] == "differ":
-                print(f"    {r['q']}: CRL={fmt_val(r['crl_val'])} vs SQL={fmt_val(r['sql_val'])}")
+                print(f"    {r['q']}: CRL={fmt_val(r['crl_rep'])} vs SQL={fmt_val(r['sql_rep'])}")
+
+    if crl_unstable > 0 or sql_unstable > 0:
+        print(f"\n{RED}  Unstable results (different values across runs):{RESET}")
+        for r in results:
+            if r["crl_con"] == "unstable":
+                vals = [fmt_val(v) for v in r["crl_vals"]]
+                print(f"    CRL {r['q']}: {vals}")
+            if r["sql_con"] == "unstable":
+                vals = [fmt_val(v) for v in r["sql_vals"]]
+                print(f"    SQL {r['q']}: {vals}")
 
     con.close()
 
