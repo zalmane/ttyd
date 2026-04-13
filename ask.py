@@ -405,7 +405,7 @@ def format_table(cols: list[str], rows: list[tuple]) -> str:
 # Main
 # ---------------------------------------------------------------------------
 
-SQL_COMPARE_PROMPT = """You are a SQL expert. Given these DuckDB tables and model descriptions, write a SQL query to answer the question.
+SQL_COMPARE_PROMPT = """You are a SQL expert. Given these DuckDB tables and business rules, write a SQL query to answer the question.
 
 Tables:
   orders(order_id VARCHAR, customer_id VARCHAR, product_id VARCHAR, amount DOUBLE, order_date DATE, status VARCHAR)
@@ -413,10 +413,34 @@ Tables:
   subscriptions(subscription_id VARCHAR, customer_id VARCHAR, product_id VARCHAR, mrr DOUBLE, start_date DATE, end_date DATE, status VARCHAR)
   products(product_id VARCHAR, name VARCHAR, category VARCHAR, list_price DOUBLE)
 
-Business rules from our governed models:
-{model_descriptions}
+Business rules (follow these PRECISELY):
 
-Follow these rules precisely — they define what "completed orders", "qualifying subscriptions", "ARR", "effective MRR", etc. mean.
+ORDERS:
+- "Completed orders" = orders WHERE status='completed'. Revenue should ONLY include completed orders.
+- "Deal Type" is computed: 'Strategic' if segment='Enterprise' AND amount>=4000, 'Enterprise Standard' if segment='Enterprise', 'Growth' if amount>=2000, else 'Transactional'
+- "Size Tier" is computed: 'Large' if amount>=4000, 'Medium' if amount>=1000, else 'Small'
+- To get segment/region, JOIN orders to customers on customer_id
+
+SUBSCRIPTIONS:
+- "Qualifying subscriptions" = subscriptions WHERE status='active' AND mrr>0 AND status!='trial'
+- "Effective MRR" = CASE WHEN start_date > end_date THEN 0 ELSE mrr END
+- "Discount %" = (1.0 - mrr / products.list_price) * 100.0 (JOIN to products on product_id)
+- "ARR" = effective_mrr * 12 (per subscription, annualized)
+- "MRR" = SUM of effective_mrr from qualifying subscriptions
+- For point-in-time queries ("ARR in February 2025"), filter: start_date <= '2025-02-28' AND end_date >= '2025-02-01'
+
+MRR MOVEMENTS:
+- Compare each customer's MRR month-over-month using LAG() partitioned by customer, ordered by year/month
+- "New" = no previous month MRR (LAG is NULL)
+- "Churn" = current MRR=0 and previous MRR>0
+- "Expansion" = current MRR > previous MRR
+- "Contraction" = current MRR < previous MRR
+- "Expansion MRR" = SUM of (current_mrr - previous_mrr) WHERE current_mrr > previous_mrr
+
+NRR (Net Revenue Retention):
+- Exclude "new" customers from NRR calculation
+- NRR % = SUM(current_mrr) / SUM(previous_mrr) * 100
+
 Return ONLY the SQL query, no explanation."""
 
 
