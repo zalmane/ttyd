@@ -1,35 +1,26 @@
-/** Customer monthly MRR — aggregated MRR per customer per month with window for lag/lead */
+/** Customer monthly MRR — dense grid of MRR per customer per active month, with self-join for previous month */
 model customer_monthly_mrr("Customer Monthly MRR") {
 
-    /** MRR per customer per month, with window defined for time-series comparison */
+    /** MRR per customer per month — one row for every month each customer had active subs */
     entity customer_monthly_mrr("Customer Monthly MRR") {
         generated from entity monthly_recognized_subs.monthly_recognized_subs
-            group base.customer_id, base.customer_name, base.segment, base.region, base.active_year, base.active_month as by_cust_month
+            group base.customer_id, base.customer_name, base.segment, base.region, base.active_year, base.active_month_num as by_cust_month
         output
 
-        /** Customer dimensions */
-        @dimension property customer_id("Customer ID") -> string { base.customer_id }
-        /** */
-        @dimension property customer_name("Customer Name") -> string { base.customer_name }
-        /** */
-        @dimension property segment("Segment") -> string { base.segment }
-        /** */
-        @dimension property region("Region") -> string { base.region }
+        /** */ @dimension property customer_id("Customer ID") -> string { base.customer_id }
+        /** */ @dimension property customer_name("Customer Name") -> string { base.customer_name }
+        /** */ @dimension property segment("Segment") -> string { base.segment }
+        /** */ @dimension property region("Region") -> string { base.region }
 
-        /** Time dimensions */
-        @dimension property active_year("Year") -> int { base.active_year }
-        /** */
-        @dimension property active_month("Month") -> int { base.active_month }
+        /** */ @dimension property active_year("Year") -> int { base.active_year }
+        /** */ @dimension property active_month("Month") -> int { base.active_month_num }
 
-        /** Aggregated MRR for this customer in this month */
-        @metric property mrr("MRR") -> float { sum(base.by_cust_month.effective_mrr) }
-        /** */
-        @metric property sub_count("Subscription Count") -> int { count(base.by_cust_month.subscription_id) }
+        /** */ @metric property mrr("MRR") -> float { sum(base.by_cust_month.effective_mrr) }
+        /** */ @metric property sub_count("Subscription Count") -> int { count(base.by_cust_month.subscription_id) }
 
-        /** Window for lag/lead across months per customer */
-        window by_customer("By Customer") {
-            partition by base.customer_id
-            order by base.active_year, base.active_month
+        /** Self-join to previous month for month-over-month comparison */
+        relation to_prev("Previous Month") {
+            related to one customer_monthly_mrr.customer_monthly_mrr using base.customer_id == target.customer_id and (base.active_year * 12 + base.active_month) - 1 == (target.active_year * 12 + target.active_month)
         }
     }
 }

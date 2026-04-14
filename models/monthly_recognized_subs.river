@@ -1,9 +1,10 @@
-/** Monthly recognized subscriptions — one row per qualifying subscription. WARNING: active_year/active_month are the subscription START date, not all months the sub was active. To check if a sub was active during a specific period, use start_date/end_date overlap: start_date <= period_end AND end_date >= period_start with parse_date. */
+/** Monthly recognized subscriptions — one row per qualifying subscription per active month, using split date_range */
 model monthly_recognized_subs("Monthly Recognized Subscriptions") {
 
-    /** One row per qualifying subscription. active_year/active_month = subscription start month only. For point-in-time queries (e.g. 'active in Feb 2025'), filter on start_date <= or_default(parse_date("2025-02-28"), base.start_date) and end_date >= or_default(parse_date("2025-02-01"), base.end_date). Do NOT use active_year/active_month for date range overlap. */
+    /** Each qualifying subscription expanded into one row per active month. active_month is a real month the sub was active, not just the start month. */
     entity monthly_recognized_subs("Monthly Recognized Subscriptions") {
         generated from entity qualifying_subs.qualifying_subs
+            split date_range(base.start_date, base.end_date, "month") as active_month
         output
 
         /** */ property subscription_id("Subscription ID") -> string { base.subscription_id }
@@ -17,14 +18,9 @@ model monthly_recognized_subs("Monthly Recognized Subscriptions") {
 
         /** */ property effective_mrr("Effective MRR") -> float { base.effective_mrr }
 
-        /** Year the subscription started — NOT the year it was active. Use start_date/end_date for overlap queries. */
-        property active_year("Active Year") -> int { year(base.start_date) }
-        /** Month the subscription started — NOT all months it was active. Use start_date/end_date for overlap queries. */
-        property active_month("Active Month") -> int { month(base.start_date) }
-
-        /** Subscription start date — use for date range overlap: start_date <= period_end */
-        property start_date("Start Date") -> date { base.start_date }
-        /** Subscription end date — use for date range overlap: end_date >= period_start */
-        property end_date("End Date") -> date { base.end_date }
+        /** The month this subscription was active — one row per active month */
+        property active_month("Active Month") -> date { base.active_month }
+        /** */ property active_year("Active Year") -> int { year(base.active_month) }
+        /** */ property active_month_num("Active Month Number") -> int { month(base.active_month) }
     }
 }

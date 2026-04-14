@@ -1,7 +1,7 @@
-/** MRR movements — month-over-month MRR changes per customer with classification */
+/** MRR movements — month-over-month MRR changes per customer using self-join for accurate churn detection */
 model mrr_movements("MRR Movements") {
 
-    /** Per-customer month-over-month MRR change with status classification */
+    /** Per-customer month-over-month MRR change with status classification. Uses self-join (not LAG) so churned customers appear with previous_mrr from their last active month. */
     entity mrr_movements("MRR Movements") {
         generated from entity customer_monthly_mrr.customer_monthly_mrr
         output
@@ -16,13 +16,14 @@ model mrr_movements("MRR Movements") {
 
         /** */ @metric property current_mrr("Current MRR") -> float { base.mrr }
 
-        /** */ @metric property previous_mrr("Previous MRR") -> option[float] { base.by_customer.mrr.lag(1) }
+        /** */ @metric property previous_mrr("Previous MRR") -> option[float] { base.to_prev.mrr }
 
         /** */ @metric property prev_mrr_safe("Previous MRR Safe") -> float { or_default(self.previous_mrr, 0.0) }
 
         /** */ @metric property mrr_change("MRR Change") -> float { base.mrr - self.prev_mrr_safe }
 
-        /** */ @dimension property is_new("Is New") -> bool { is_option(self.previous_mrr) }
+        /** is_option returns true when value IS present, so NOT is_option = is null = new customer */
+        @dimension property is_new("Is New") -> bool { not is_option(self.previous_mrr) }
 
         /** */ @dimension property change_category("Change Category") -> string {
             if self.is_new { "new" }
